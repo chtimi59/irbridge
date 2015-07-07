@@ -20,9 +20,11 @@ OBJS = bitops.o ir_nec.o ir_unkn0.o
 all: $(LIBPATH)/libircodec.a
 
 $(LIBPATH)/libircodec.a: $(OBJS)
+	@mkdir -p $(LIBPATH)
 	$(AR) rcs $@ $^ 
 
 $(LIBPATH)/libircodecd.a: $(OBJS)
+	@mkdir -p $(LIBPATH)
 	$(AR) rcs $@ $^ 
 	
 %.o: $(SRCPATH)/%.c
@@ -33,5 +35,4 @@ utest: $(LIBPATH)/libircodecd.a $(OBJS) main.o
 	
 clean:
 	@rm -f *.o
-	@rm -f *.a	
 	@rm -f utest	

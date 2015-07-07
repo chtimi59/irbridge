@@ -49,7 +49,7 @@ Timming
 worst case =  1.8ms/bit ; 500 bits/s
 */
 
-// TODO 
+/* TODO */
 
 
 #ifdef UNITARY_TEST
