@@ -54,12 +54,23 @@ int main()
 					{
 						/* invert */
 						for (i = 0; i<(n / sizeof(sample_t)); i++)
-							decoded[i] = (~decoded[i]) & 0xFF;				
+							decoded[i] = (~decoded[i]) & 0xFF;			
 						
+						#if 0
 						/* show */
 						for (i = 0; i<(n / sizeof(sample_t)); i++)
 							fprintf(stderr,"0x%X ", decoded[i]);							
 						fprintf(stderr,"\r\n");
+						#endif
+						
+						#if 0
+						if (decoded[0]==0xAB) {
+							fprintf(stderr,"0x%X ", decoded[1]);							
+							fprintf(stderr,"%0.1f ", (float)(decoded[2]<<8 | decoded[3])/10);							
+							fprintf(stderr,"%i %i", (decoded[0]+decoded[1]+decoded[2]+decoded[3]) & 0xFF, decoded[4]);
+							fprintf(stderr,"\r\n");
+						}
+						#endif
 					}
 					free(decoded);
 					RESET();
