@@ -35,6 +35,7 @@ int main()
 	
 	set_conio_terminal_mode();
 	RESET();
+	fprintf(stderr, "Ready!\r\n");
 	while (1)
 	{
 		int c = read(fd, (void *)&buffer, BUF_SIZE);
@@ -63,7 +64,7 @@ int main()
 						fprintf(stderr,"\r\n");
 						#endif
 						
-						#if 0
+						#if 1
 						if (decoded[0]==0xAB) {
 							fprintf(stderr,"0x%X ", decoded[1]);							
 							fprintf(stderr,"%0.1f ", (float)(decoded[2]<<8 | decoded[3])/10);							
