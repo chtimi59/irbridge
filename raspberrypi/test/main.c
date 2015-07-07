@@ -143,7 +143,7 @@ int main()
 						unsigned int i;		
 						sample_t* decoded = NULL;
 						size_t n = string2bytes(BUFF, &decoded);
-						printf("%i:%s -> ", BUFF_IDX, BUFF);
+						fprintf(stderr,"%i:%s -> ", BUFF_IDX, BUFF);
 						for (i = 0; i<(n / sizeof(sample_t)); i++)
 							fprintf(stderr,"0x%X ", decoded[i]);							
 						fprintf(stderr,"\r\n");
