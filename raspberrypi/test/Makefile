@@ -2,14 +2,17 @@ CC=gcc
 IRCODECPATH=../../ircodec
 
 CFLAGS=-W -Wall -ansi -pedantic -I$(IRCODECPATH)/include
-LDFLAGS=-L$(IRCODECPATH)/lib -lircodec
+LDFLAGS=-L$(IRCODECPATH)/lib
 EXEC=test
 OBJS = main.o iokey.o
 
 all: $(EXEC)
 
-test: $(OBJS)
-	$(CC) -o  $@  $^  $(LDFLAGS)
+$(IRCODECPATH)/lib/libircodec.a :
+	@(cd $(IRCODECPATH)/linux && $(MAKE))
+
+test: $(OBJS) $(IRCODECPATH)/lib/libircodec.a
+	$(CC) -o  $@  $^ -lircodec $(LDFLAGS)
 
 %.o: %.c
 	$(CC) -o $@ -c $< $(CFLAGS)
