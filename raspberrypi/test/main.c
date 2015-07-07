@@ -99,6 +99,7 @@ int main()
 					write(fd, (void *)ir, nir);
 					free(ir);
 					free(bits);
+					break;
 				}
 				case '2': {
 					sample_t TEST[4] = { 0x0, 0xF7, 0x40, 0xBF};
@@ -110,6 +111,7 @@ int main()
 					write(fd, (void *)ir, nir);
 					free(ir);
 					free(bits);
+					break;
 				}
 				#endif
 			}
