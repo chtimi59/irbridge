@@ -16,7 +16,7 @@ RAW : lirc raw output
 NEC : NEC ir codec
 UNKNOW0 : UNKNOW-0 ir propriatary codec
 */
-#define NEC
+#define UNKNOW0
 
 
 #ifdef NEC
@@ -48,9 +48,11 @@ int main()
 	#endif
 	#ifdef NEC
 	fprintf(stderr, "Test NEC\r\n");
+	RESET();
 	#endif
-	#ifdef NEC
+	#ifdef UNKNOW0
 	fprintf(stderr, "Test UNKNOW0\r\n");
+	RESET();
 	#endif
 	
 	if (fd == -1) {
@@ -107,7 +109,7 @@ int main()
 					lirc_t* ir = NULL;
 					size_t  nir = 0;
 					nir = ENCODE(bits, &ir);
-					fprintf(stderr,"send TEST1 -- %i : %s\r\n",nir,bits);
+					fprintf(stderr,"send TEST2 -- %i : %s\r\n",nir,bits);
 					write(fd, (void *)ir, nir);
 					free(ir);
 					free(bits);
