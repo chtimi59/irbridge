@@ -67,14 +67,40 @@ int main()
 					fprintf(stderr, "unknown command '%c'\n\r",c);
 				case 'h':					
 					fprintf(stderr, "h - help\n\r");
-					fprintf(stderr, "s - send greeting to server'\n\r");
 					fprintf(stderr, "q - quit\n\r");
+					fprintf(stderr, "1 - send test 1'\n\r");
+					fprintf(stderr, "2 - send test 2'\n\r");
 					break;					
 				case 0x3:
 				case 0x4:
 				case 'q':
 					end = 1;
 					break;
+					
+				#if defined(NEC)
+				case '1': {
+					sample_t TEST[4] = { 0x0, 0xF7, 0x40, 0xBF};
+					char * bits = bytes2string(TEST, 32);
+					lirc_t* ir = NULL;
+					size_t  nir = 0;
+					nir = ENCODE(bits, &ir);
+					fprintf(stderr,"send TEST1 -- %i : %s\n\r",nir,bits);
+					write(fd, (void *)ir, nir);
+					free(ir);
+					free(bits);
+				}
+				case '2': {
+					sample_t TEST[4] = { 0x0, 0xF7, 0x40, 0xBF};
+					char * bits = bytes2string(TEST, 32);
+					lirc_t* ir = NULL;
+					size_t  nir = 0;
+					nir = ENCODE(bits, &ir);
+					fprintf(stderr,"send TEST1 -- %i : %s\n\r",nir,bits);
+					write(fd, (void *)ir, nir);
+					free(ir);
+					free(bits);
+				}
+				#endif
 			}
 		}
 		
@@ -101,7 +127,7 @@ int main()
 					if (DECODE(&in, &len)) {
 						sample_t* decoded = NULL;
 						size_t n = string2bytes(BUFF, &decoded);
-						printf("%i : %s\n", BUFF_IDX, BUFF);
+						printf("%i : %s\n\r", BUFF_IDX, BUFF);
 						{
 							unsigned int i;						
 							for (i = 0; i<(n / sizeof(sample_t)); i++)
