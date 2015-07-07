@@ -1,5 +1,5 @@
-package com.jdodev.updtest;
-import com.jdodev.updtest.UDPFrame.TESTFrame;
+package com.jdodev.irclient;
+import com.jdodev.irclient.UDPFrame.TESTFrame;
 
 import android.app.Activity;
 import android.content.Context;
@@ -14,7 +14,7 @@ import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.ToggleButton;
 
-public class main extends Activity implements UDPClient.Listener {
+public class main extends Activity implements TCPClient.Listener {
 	
 	public final static String TAG = "UDPTST";
 	private main mCtx = null;
@@ -24,7 +24,7 @@ public class main extends Activity implements UDPClient.Listener {
 	private Spinner mAddressView = null;
 	private CheckBox mLightCheckBoxView = null;
 	
-	private UDPClient mRxThread = null;
+	private TCPClient mRxThread = null;
 	private PowerManager mPowerManager = null;
 	private PowerManager.WakeLock mWakeLockScreen = null;
 
@@ -61,7 +61,7 @@ public class main extends Activity implements UDPClient.Listener {
 			public void onClick(View v) {
         		if (mStartStopBtn.isChecked()) {
         			if (mRxThread == null) {
-        				mRxThread = new UDPClient(mCtx, mCtx);
+        				mRxThread = new TCPClient(mCtx, mCtx);
         				mRxThread.start();
         			}
         		} else {
@@ -102,7 +102,7 @@ public class main extends Activity implements UDPClient.Listener {
 	
 	@Override
 	public void OnThreadStart() {
-		mTxtInformation.setText("Wait for "+UDPClient.MULTICAST_ADDR+":"+UDPClient.UDP_PORT);
+		mTxtInformation.setText("Wait for "+TCPClient.MULTICAST_ADDR+":"+TCPClient.UDP_PORT);
 		if (mWakeLockScreen==null) {
 			mWakeLockScreen = mPowerManager.newWakeLock(PowerManager.FULL_WAKE_LOCK, "My Tag");
 			if (mWakeLockScreen!=null) mWakeLockScreen.acquire();
