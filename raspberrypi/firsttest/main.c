@@ -97,7 +97,7 @@ int main()
 					lirc_t* ir = NULL;
 					size_t  nir = 0;
 					nir = ENCODE(bits, &ir);
-					fprintf(stderr,"send TEST1 -- %i : %s\r\n",nir,bits);
+					fprintf(stderr,"send 88.8 -- %i : %s\r\n",nir,bits);
 					write(fd, (void *)ir, nir);
 					free(ir);
 					free(bits);
@@ -109,7 +109,7 @@ int main()
 					lirc_t* ir = NULL;
 					size_t  nir = 0;
 					nir = ENCODE(bits, &ir);
-					fprintf(stderr,"send TEST2 -- %i : %s\r\n",nir,bits);
+					fprintf(stderr,"send 88.3 -- %i : %s\r\n",nir,bits);
 					write(fd, (void *)ir, nir);
 					free(ir);
 					free(bits);
@@ -124,7 +124,7 @@ int main()
 					lirc_t* ir = NULL;
 					size_t  nir = 0;
 					nir = ENCODE(bits, &ir);
-					fprintf(stderr,"send TEST1 -- %i : %s\r\n",nir,bits);
+					fprintf(stderr,"send ON -- %i : %s\r\n",nir,bits);
 					write(fd, (void *)ir, nir);
 					free(ir);
 					free(bits);
@@ -136,7 +136,7 @@ int main()
 					lirc_t* ir = NULL;
 					size_t  nir = 0;
 					nir = ENCODE(bits, &ir);
-					fprintf(stderr,"send TEST2 -- %i : %s\r\n",nir,bits);
+					fprintf(stderr,"send OFF -- %i : %s\r\n",nir,bits);
 					write(fd, (void *)ir, nir);
 					free(ir);
 					free(bits);
