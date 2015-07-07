@@ -103,33 +103,9 @@ int main(int argc, char *argv[])
 
 		/* 1- Something from STDIN ? */
 		if (FD_ISSET(STDIN_FILENO, &rdfs))
-		{			
-			int end = 0; 
-
-			/* only keep last character */
-			char c,t;
-			while ((read(0, &t, 1)>0) && t!='\n') c=t;			
-			
-			switch(c) {
-				case 'q':
-					end=1;
-					break;
-				case 's':
-					fprintf(stderr, "send greeting!\n");
-					write_toallclients("Hello world!\n", 13+1);
-					break;
-				default:
-					fprintf(stderr, "unknown command '%c'\n",c);
-				case 'h':					
-					fprintf(stderr, "h - help\n");
-					fprintf(stderr, "s - send greeting to all client'\n");
-					fprintf(stderr, "q - quit\n");
-					break;
-			}
-			if (end)
-				break;
+		{
+			break;
 		}
-		
 		/* 2- Something from IR ? */
 		else if (FD_ISSET(fd, &rdfs))
 		{
