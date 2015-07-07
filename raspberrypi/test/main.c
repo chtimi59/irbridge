@@ -142,7 +142,7 @@ int main()
 					if (DECODE(&in, &len)) {
 						sample_t* decoded = NULL;
 						size_t n = string2bytes(BUFF, &decoded);
-						printf("%i : %s\r\n", BUFF_IDX, BUFF);
+						printf("%i : %s    ", BUFF_IDX, BUFF);
 						{
 							unsigned int i;						
 							for (i = 0; i<(n / sizeof(sample_t)); i++)
