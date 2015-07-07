@@ -1,6 +1,14 @@
 <?PHP
 require("php/PHPMailer/class.phpmailer.php");
 
+/* config */
+define('LOG_USER_TABLE', 'scounter_users');
+define('LOG_TMP_USER_TABLE', 'scounter_tmp_users');
+define('LOG_NO_REPLY_EMAIL', 'no-reply@jdo-dev.org');
+define('LOG_TITLE', 'Share-Counter');
+
+
+
 define('ACTION_CLASS_LOG',    100);
 
 define('ACTION_LOGIN',                  ACTION_CLASS_LOG+0);
@@ -26,7 +34,7 @@ define('NAME' , 'Username');
 define('PASSWORD' , 'password');
 define('FORGET' , 'Forget?');
 define('MAIL_SENT_TO','A mail has been sent to ');
-define('MAIL_GREETING','Welcome on Humanitas communauty! please click on the following link to valid your account.<br>');
+define('MAIL_GREETING','Welcome! please click on the following link to valid your account.<br>');
 
 define('ERROR_MAIL','<span class="error">Mail error</span><br>');
 define('ERROR_PLZ_REGISTER','<span class="error">Invalid request, please re-register</span><br>');
@@ -51,20 +59,13 @@ session_start();
 
 if (isset($_SESSION['clientUpdate']))
 {
-
-	// dirty fix: never logout is embedded
-	if (!isset($_GET['embedded']))
+	if ((time()-$_SESSION['clientUpdate'])> 60*SESSION_TIMEOUT_MINUTES)
 	{
-		
-		if ((time()-$_SESSION['clientUpdate'])> 60*SESSION_TIMEOUT_MINUTES)
-		{
-			if (isset($_SESSION['authkey']))  unset($_SESSION['authkey']);
-			if (isset($_SESSION['embedded'])) unset($_SESSION['authkey']);
-			if (isset($_SESSION['clientIP'])) unset($_SESSION['clientIP']);
-			if (isset($_SESSION['clientUpdate'])) unset($_SESSION['clientUpdate']);
-			session_destroy();
-			print ('<p>Session timeout</p>');
-		}
+		if (isset($_SESSION['authkey']))  unset($_SESSION['authkey']);
+		if (isset($_SESSION['clientIP'])) unset($_SESSION['clientIP']);
+		if (isset($_SESSION['clientUpdate'])) unset($_SESSION['clientUpdate']);
+		session_destroy();
+		print ('<p>Session timeout</p>');
 	}
 }
 
@@ -72,15 +73,9 @@ $_SESSION['clientIP'] = $_SERVER['REMOTE_ADDR'];
 $_SESSION['clientUpdate'] = time(); 
 	 
 	 
-// Login/Logoff
-function logIn($key)
-{
+// --- Basic Login/Logoff ---
+function logIn($key) {
     $authkey = NULL;
-
-    if (isset($_GET['embedded']))
-        $_SESSION['embedded'] = ($_GET['embedded']=='true');
-	if (isset($_SESSION['embedded']))
-		$GLOBALS['EMB'] = $_SESSION['embedded'];
 	
     if (isset($_SESSION['authkey']))
         $authkey = $_SESSION['authkey'];
@@ -89,13 +84,17 @@ function logIn($key)
      if ($key)
         $authkey = $key;
 	
-    if ($authkey) {
-		
-        $sql = 'SELECT * FROM `users` WHERE UUID="'.$authkey.'"';
+    if ($authkey) {		
+        $sql = 'SELECT * FROM `'.LOG_USER_TABLE.'` WHERE UUID="'.$authkey.'"';
         $req = mysql_query($sql) or sqldie($sql);
         $data = mysql_fetch_assoc($req);
         if (!$data)
             logOff();
+		
+		/* update connection date */
+		$sql = 'UPDATE `'.LOG_USER_TABLE.'` SET `LAST_CONNECTION`=now() WHERE UUID="'.$authkey.'"';
+		$req = mysql_query($sql) or sqldie($sql);
+		
         $_SESSION['authkey'] = $data['UUID'];
         $GLOBALS['USER'] = $data;
     } else {
@@ -110,21 +109,19 @@ function logOff() {
 
 
 
-
-
+// --- LOGIN_ACTIONS --- 
+/* and feed LOG_HTML accordignly */
 
 logIn(NULL);
-$html = '';
-
-switch($action)
-{
+$LOG_HTML = '';
+switch($action) {
+	/* Change data into USER Table*/
     case ACTION_ACCOUNT_FINISH_SETTING:
-        if ($EMB) break; // forbidden in embedded mode
 		if ( (!$USER) || (!isset ($_POST['name'])) || (!isset ($_POST['pw'])) || (!isset ($_POST['pw2'])) || (!isset ($_POST['email'])) ) 
            break;
         if (!($err = check_user_account_setting($_POST,$USER)))
         {
-            $sql = "UPDATE `users` SET "
+            $sql = "UPDATE `".LOG_USER_TABLE."` SET "
                         ." `NAME` =  '".$_POST['name']."',"
                         ." `PASSWORD` =  '".$_POST['pw']."',"
                         ." `EMAIL` =  '".$_POST['email']."'"
@@ -141,17 +138,17 @@ switch($action)
 		    print "\n";
             break;
         } else {
-          $html .= $err;
+          $LOG_HTML .= $err;
         }
         break;
         
 
+	/* Form to change data in USER table */
     case ACTION_ACCOUNT_SETTING:
-        if ($EMB) break; // forbidden in embedded mode
 		if (!$USER)
            break;
 		
-        $sql = 'SELECT * FROM `users` WHERE UUID="'.$USER['UUID'].'"';
+        $sql = 'SELECT * FROM `'.LOG_USER_TABLE.'` WHERE UUID="'.$USER['UUID'].'"';
         $req = mysql_query($sql) or sqldie($sql);  
         $data = mysql_fetch_assoc($req);
         if (!$data) {
@@ -159,27 +156,26 @@ switch($action)
             break;
         }
         
-        $html .= '<form action="index.php?action='.ACTION_ACCOUNT_FINISH_SETTING.'" method="post">';    
-        $html .= ENTER_A_NAME.':<input type="text" name="name" value="'.$data['NAME'].'"/><br>';        
-        $html .= ENTER_A_PASSWORD.':<input type="password" name="pw" value="'.$data['PASSWORD'].'"/><br>';        
-        $html .= REENTER_A_PASSWORD.':<input type="password" name="pw2" value="'.$data['PASSWORD'].'"/><br>';
-        $html .= EMAIL.': <input type="text" name="email" value="'.$data['EMAIL'].'"/><br>';                
-        $html .= '<input type="submit" />';
-        $html .= '</form>';
+        $LOG_HTML .= '<form action="index.php?action='.ACTION_ACCOUNT_FINISH_SETTING.'" method="post">';    
+        $LOG_HTML .= ENTER_A_NAME.':<input type="text" name="name" value="'.$data['NAME'].'"/><br>';        
+        $LOG_HTML .= ENTER_A_PASSWORD.':<input type="password" name="pw" value="'.$data['PASSWORD'].'"/><br>';        
+        $LOG_HTML .= REENTER_A_PASSWORD.':<input type="password" name="pw2" value="'.$data['PASSWORD'].'"/><br>';
+        $LOG_HTML .= EMAIL.': <input type="text" name="email" value="'.$data['EMAIL'].'"/><br>';                
+        $LOG_HTML .= '<input type="submit" />';
+        $LOG_HTML .= '</form>';
         break;
         
-        
+	/* Send User password by email */        
     case ACTION_LOGFORGET_EMAIL:
-		if ($EMB) break; // forbidden in embedded mode
         logOff();
         if (!isset ($_POST['email']))
             break;
             
-        $sql = 'SELECT * FROM `users` WHERE EMAIL="'.$_POST['email'].'"';
+        $sql = 'SELECT * FROM `'.LOG_USER_TABLE.'` WHERE EMAIL="'.$_POST['email'].'"';
         $req = mysql_query($sql) or sqldie($sql);  
         $data = mysql_fetch_assoc($req);
         if (!$data) {
-            $html .= ERROR_UNKNOWM_EMAIL;
+            $LOG_HTML .= ERROR_UNKNOWM_EMAIL;
             break;
         }
         
@@ -188,45 +184,54 @@ switch($action)
 		$message .= NAME.': '.$data['NAME'].'<br>';
 		$message .= PASSWORD.': '.$data['PASSWORD'].'<br>';
 		$message .="</body></html>";
-		if(sendMail($_POST['email'], "Humanitas account", $message)) {
-			$html .= MAIL_SENT_TO.$_POST['email']."<br>";
+		if(sendMail($_POST['email'], LOG_TITLE." account", $message)) {
+			$LOG_HTML .= MAIL_SENT_TO.$_POST['email']."<br>";
 		} else {
-			$html .= ERROR_MAIL;
+			$LOG_HTML .= ERROR_MAIL;
 		}       
 
         break;
          
-
+	/* Forms to ask for our user password */        
     case ACTION_LOGFORGET:
-		if ($EMB) break; // forbidden in embedded mode
         logOff();
 
-        $html .= '<form action="index.php?action='.ACTION_LOGFORGET_EMAIL.'" method="post">';    
-        $html .= EMAIL.': <input type="text" name="email"/><br>';                
-        $html .= '<input type="submit" />';
-        $html .= '</form>';        
+        $LOG_HTML .= '<form action="index.php?action='.ACTION_LOGFORGET_EMAIL.'" method="post">';    
+        $LOG_HTML .= EMAIL.': <input type="text" name="email"/><br>';                
+        $LOG_HTML .= '<input type="submit" />';
+        $LOG_HTML .= '</form>';        
         break;
         
-
+	/* Create a new user */        
     case ACTION_FINISH_ACCOUNT_CREATE:
-		if ($EMB) break; // forbidden in embedded mode
         logOff();
 		
         if ((!isset ($_POST['name'])) || (!isset ($_POST['pw'])) || (!isset ($_POST['pw2'])) || (!isset ($_POST['email']))) 
             break;
-        
+        if (!isset ($_GET['verif']))
+			break;
+       
 		
         if (!($err = check_user_account_setting($_POST,$USER)))
         {
+			// add new user
             $uuid = guid();
-            $sql = "INSERT INTO `users` (`UUID`, `NAME`, `PASSWORD`, `EMAIL`) VALUES ("
+            $sql = "INSERT INTO `".LOG_USER_TABLE."` (`UUID`, `NAME`, `PASSWORD`, `EMAIL`, `CREATION`) VALUES ("
                     ."'".$uuid."',"
                     ."'".$_POST['name']."',"
                     ."'".$_POST['pw']."',"
-                    ."'".$_POST['email']."');";
+                    ."'".$_POST['email']."',"
+					."now());";
             
             $req = mysql_query($sql) or sqldie($sql);  
-            login($uuid);
+
+			// remove from anti-chambre
+			$sql = 'DELETE FROM `'.LOG_TMP_USER_TABLE.'` WHERE UUID="'.$_GET['verif'].'"';
+			$req = mysql_query($sql) or sqldie($sql);  
+			$data = mysql_fetch_assoc($req);			
+			
+			// auto-login
+			login($uuid);
 			
 			// finish account creation
 		    $action=0;
@@ -235,108 +240,115 @@ switch($action)
             break;
 			
         } else {
-          $html .= $err;
+          $LOG_HTML .= $err;
         }
         // else NO BREAK! (to allow to redo-config)
         
-        
+	/* New User email is validate give him the real form */    
     case ACTION_CHECKING_ACCOUNT:
-		if ($EMB) break; // forbidden in embedded mode
         logOff();
 
         // check id
-        $sql = 'SELECT * FROM `tmp_users` WHERE UUID="'.$_GET['verif'].'"';
+        $sql = 'SELECT * FROM `'.LOG_TMP_USER_TABLE.'` WHERE UUID="'.$_GET['verif'].'"';
         $req = mysql_query($sql) or sqldie($sql);  
         $data = mysql_fetch_assoc($req);
         if (!$data) {
-            $html .= ERROR_PLZ_REGISTER;
+            $LOG_HTML .= ERROR_PLZ_REGISTER;
             break;
         }
         
-        $html .= '<form action="index.php?action='.ACTION_FINISH_ACCOUNT_CREATE.'&verif='.$_GET['verif'].'" method="post">';    
-        $html .= ENTER_A_NAME.':<input type="text" name="name" value="'.((isset($_POST['name']))?$_POST['name']:'').'"/><br>';        
-        $html .= ENTER_A_PASSWORD.':<input type="password" name="pw" /><br>';        
-        $html .= REENTER_A_PASSWORD.':<input type="password" name="pw2" /><br>';
-        $html .= EMAIL.': <input type="text" name="email" value="'.$data['EMAIL'].'"/><br>';                
-        $html .= '<input type="submit" />';
-        $html .= '</form>';
+        $LOG_HTML .= '<form action="index.php?action='.ACTION_FINISH_ACCOUNT_CREATE.'&verif='.$_GET['verif'].'" method="post">';    
+        $LOG_HTML .= ENTER_A_NAME.':<input type="text" name="name" value="'.((isset($_POST['name']))?$_POST['name']:'').'"/><br>';        
+        $LOG_HTML .= ENTER_A_PASSWORD.':<input type="password" name="pw" /><br>';        
+        $LOG_HTML .= REENTER_A_PASSWORD.':<input type="password" name="pw2" /><br>';
+        $LOG_HTML .= EMAIL.': <input type="text" name="email" value="'.$data['EMAIL'].'"/><br>';                
+        $LOG_HTML .= '<input type="submit" />';
+        $LOG_HTML .= '</form>';
         break;
         
-        
+	/* Add user in anti-chambre */            
     case ACTION_CREATING_ACCOUNT:
-		if ($EMB) break; // forbidden in embedded mode
         logOff();
-
+		
+		/* Seems the best moment to do it */
+		cleanAntiChambre();
+		
         if (!isset ($_POST['email']))
             break;
 
         if (!check_email_address($_POST['email'])) {
-            $html .= ERROR_INVALID_EMAIL;
+            $LOG_HTML .= ERROR_INVALID_EMAIL;
             break;
         }
         
-        $sql = 'SELECT * FROM `users` WHERE EMAIL="'.$_POST['email'].'"';
+        $sql = 'SELECT * FROM `'.LOG_USER_TABLE.'` WHERE EMAIL="'.$_POST['email'].'"';
         $req = mysql_query($sql) or sqldie($sql);  
         $data = mysql_fetch_assoc($req);
         if ($data) {
-            $html .= ERROR_EMAIL_EXIST;
+            $LOG_HTML .= ERROR_EMAIL_EXIST;
             break;
         }
-
+		
+		$sql = 'SELECT * FROM `'.LOG_TMP_USER_TABLE.'` WHERE EMAIL="'.$_POST['email'].'"';
+        $req = mysql_query($sql) or sqldie($sql);  
+        $data = mysql_fetch_assoc($req);
+        if ($data) {
+            $LOG_HTML .= ERROR_EMAIL_EXIST;
+            break;
+        }
+		
         // save request
         $uid = guid();
 
-        $sql = "INSERT INTO `tmp_users` (`UUID`, `EMAIL`) VALUES ('".$uid."', '".$_POST['email']."');";
+        $sql = "INSERT INTO `".LOG_TMP_USER_TABLE."` (`UUID`, `EMAIL`) VALUES ('".$uid."', '".$_POST['email']."');";
         $req = mysql_query($sql) or sqldie($sql);  
         $verifurl = 'http://'.$_SERVER['HTTP_HOST'].'/'.$_SERVER['PHP_SELF'].'?verif='.$uid;
         
         //send mail        
         if ($GLOBALS['DEVELOPEMENT_MODE']) {
-            $html .=('<a href="'.$verifurl.'">'.$verifurl.'</a><br>');
+            $LOG_HTML .=('<a href="'.$verifurl.'">'.$verifurl.'</a><br>');
         }
 		
 		$message  = "<html><body>";
 		$message .= MAIL_GREETING;
 		$message .='<a href="'.$verifurl.'">'.$verifurl.'</a>';
 		$message .="</body></html>";
-		if(sendMail($_POST['email'], "HumanITas account register", $message)) {
-			$html .= MAIL_SENT_TO.$_POST['email']."<br>";
+		if(sendMail($_POST['email'], LOG_TITLE." account register", $message)) {
+			$LOG_HTML .= MAIL_SENT_TO.$_POST['email']."<br>";
 		} else {
-			$html .= ERROR_MAIL;
+			$LOG_HTML .= ERROR_MAIL;
 		}            
 
         break;
         
-
+	/* Form for registration */
     case ACTION_CREATE_ACCOUNT:
-		if ($EMB) break; // forbidden in embedded mode
         logOff();
 
-        $html .= '<form action="index.php?action='.ACTION_CREATING_ACCOUNT.'" method="post">';        
-        $html .= EMAIL.':<input type="text" name="email" /><br>';
-        $html .= '<input type="submit" />';
-        $html .= '</form>';
+        $LOG_HTML .= '<form action="index.php?action='.ACTION_CREATING_ACCOUNT.'" method="post">';        
+        $LOG_HTML .= EMAIL.':<input type="text" name="email" /><br>';
+        $LOG_HTML .= '<input type="submit" />';
+        $LOG_HTML .= '</form>';
         break;
             
-
+	/* Perform login */
     case ACTION_LOGGING:
-		if ($EMB) break; // forbidden in embedded mode
         logOff();
 
         if ((!isset ($_POST['name'])) || (!isset ($_POST['pw'])))
             break;
                 
-        $sql = 'SELECT * FROM `users` WHERE NAME="'.$_POST['name'].'"';
+        $sql = 'SELECT * FROM `'.LOG_USER_TABLE.'` WHERE NAME="'.$_POST['name'].'"';
         $req = mysql_query($sql) or sqldie($sql);  
         $data = mysql_fetch_assoc($req);
         if (!$data) {
-            $html .= ERROR_INVALID_NAME;
-            $html .= '<a href="index.php?action='.ACTION_LOGFORGET.'">'.FORGET.'</a><br>';
+            $LOG_HTML .= ERROR_INVALID_NAME;
+            $LOG_HTML .= '<a href="index.php?action='.ACTION_LOGFORGET.'">'.FORGET.'</a><br>';
             break;
         }
         if ($data['PASSWORD']!=$_POST['pw']) {
-            $html .= ERROR_INVALID_PASSWORD;
-            $html .= '<a href="index.php?action='.ACTION_LOGFORGET.'">'.FORGET.'</a><br>';
+            $LOG_HTML .= ERROR_INVALID_PASSWORD;
+            $LOG_HTML .= '<a href="index.php?action='.ACTION_LOGFORGET.'">'.FORGET.'</a><br>';
             break;
         }
 
@@ -347,18 +359,17 @@ switch($action)
 		print "\n";
         break;
         
-
+	/* Form for login */
     case ACTION_LOGIN:
-		if ($EMB) break; // forbidden in embedded mode
-        $html .= '<form action="index.php?action='.ACTION_LOGGING.'" method="post">';        
-        $html .= NAME.':<input type="text" name="name" value="'.(($USER)?$USER['NAME']:'').'"/><br>';
-        $html .= PASSWORD.':<input type="password" name="pw" /><br>';
-        $html .= '<input type="submit" />';
-        $html .= '</form>';		
+        $LOG_HTML .= '<form action="index.php?action='.ACTION_LOGGING.'" method="post">';        
+        $LOG_HTML .= NAME.':<input type="text" name="name" value="'.(($USER)?$USER['NAME']:'').'"/><br>';
+        $LOG_HTML .= PASSWORD.':<input type="password" name="pw" /><br>';
+        $LOG_HTML .= '<input type="submit" />';
+        $LOG_HTML .= '</form>';		
         break;    
 
+	/* Do logout */
     case ACTION_LOGOUT:	
-		if ($EMB) break; // forbidden in embedded mode
         logOff();
 		// finish logout
 		$action=0;
@@ -367,25 +378,6 @@ switch($action)
         break;
 }
 
-
-print '<div id="log_header">';
-if (!$EMB)
-{
-	if ($USER) {
-		print '<a href="index.php?action='.ACTION_LOGOUT.'">['.$USER['NAME'].' logout]</a>';
-		print '<a href="index.php?action='.ACTION_ACCOUNT_SETTING.'">[setting]</a>';
-	} else {
-		print '<a href="index.php?action='.ACTION_LOGIN.'">[login]</a> ';
-		print '<a href="index.php?action='.ACTION_CREATE_ACCOUNT.'">[register]</a>';
-	}
-} else {
-	if ($USER) print 'Welcome '.$USER['NAME'].' !';
-}
-print '</div>';
-
-print '<div style="clear:both;"></div>';
-print $html;
-print "\n";
 
 
 // --- LOG HELPER ---
@@ -401,7 +393,7 @@ function check_user_account_setting($ARRAY, $ORIGNAL) {
 		if (strpos($ARRAY['name'],"'")) 
 			return ERROR_INVALID_CHARACTER;
 		
-        $sql = 'SELECT * FROM `users` WHERE NAME="'.$ARRAY['name'].'"';
+        $sql = 'SELECT * FROM `'.LOG_USER_TABLE.'` WHERE NAME="'.$ARRAY['name'].'"';
         $req = mysql_query($sql) or sqldie($sql);  
         $data = mysql_fetch_assoc($req);
         if ($data) {
@@ -425,7 +417,7 @@ function check_user_account_setting($ARRAY, $ORIGNAL) {
             return ERROR_INVALID_EMAIL;
         }
         
-        $sql = 'SELECT * FROM `users` WHERE EMAIL="'.$ARRAY['email'].'"';
+        $sql = 'SELECT * FROM `'.LOG_USER_TABLE.'` WHERE EMAIL="'.$ARRAY['email'].'"';
         $req = mysql_query($sql) or sqldie($sql);  
         $data = mysql_fetch_assoc($req);
         if ($data) {
@@ -457,6 +449,11 @@ function check_user_account_setting($ARRAY, $ORIGNAL) {
     return NULL;
 }
 
+function cleanAntiChambre() {
+	$sql = "DELETE FROM `".LOG_TMP_USER_TABLE."` WHERE (DATE + INTERVAL 30 MINUTE < NOW())";
+    mysql_query($sql);
+}
+
 function check_email_address($email) {
     $regex = '/^[_a-z0-9-]+(\.[_a-z0-9-]+)*@[a-z0-9-]+(\.[a-z0-9-]+)*(\.[a-z]{2,3})$/'; 
     return (preg_match($regex, $email));
@@ -478,7 +475,7 @@ function guid(){
     }
 }
 		
-function sendMail($mailTo, $title, $htmlmessge) {
+function sendMail($mailTo, $title, $LOG_HTMLmessge) {
 	$mail = new PHPMailer();
 	$mail->IsSMTP(); // telling the class to use SMTP
 	$mail->SMTPDebug  = 0;                     // enables SMTP debug information (for testing)
@@ -493,11 +490,11 @@ function sendMail($mailTo, $title, $htmlmessge) {
 	$mail->SMTPSecure = $GLOBALS['CONFIG']['smtp_secure'];
 	
 	$mail->IsHTML(true);
-	$mail->SetFrom("no-reply@humanitas.com", 'HumanITas');
-	$mail->AddReplyTo("no-reply@humanitas.com","HumanITas");	
+	$mail->SetFrom(LOG_NO_REPLY_EMAIL, LOG_TITLE);
+	$mail->AddReplyTo(LOG_NO_REPLY_EMAIL, LOG_TITLE);	
 	$mail->AddAddress($_POST['email']);
 	$mail->Subject  = $title;            
-	$mail->Body = $htmlmessge;
+	$mail->Body = $LOG_HTMLmessge;
 
 	return $mail->Send();
 }

@@ -1,0 +1,89 @@
+body {
+	margin:0px;
+	overflow: hidden;
+	max-height:100%;
+	background-color: white;
+}
+
+.menubar {
+	width: 100%;
+	background-color: white;
+	height: 5%;
+	font-size: 40px;
+	padding: 10px;
+}
+
+input[type="submit"]
+{
+    display: inline;
+    -webkit-border-radius: 3;
+    -moz-border-radius: 3;
+    border-radius: 10px;
+    border: solid #8c8c8c 1px;
+    padding: 20px;
+    text-decoration: none;
+    vertical-align: middle;
+}
+
+button {
+    display: inline;
+    -webkit-border-radius: 3;
+    -moz-border-radius: 3;
+    border-radius: 10px;
+    border: solid #8c8c8c 1px;
+    padding: 20px;
+    text-decoration: none;
+    vertical-align: middle;
+} 
+
+#dialogboxDiv
+{
+ 
+}
+#dialogboxDiv .dialog-body
+{
+  display: flex;
+  flex-direction: column;
+  position: absolute;
+  width: 25%;
+  height: 200px;
+  top: calc((100% - 200px)/2);
+  left: calc((100% - 25%)/2);
+  background-color: #595959;
+  border-radius: 10px;
+  box-shadow: 10px 10px 30px 5px #222;
+  padding: 10px;
+}
+
+#dialogboxDiv .dialog-input{
+   flex-grow: 1;
+   border-radius: 5px;
+   margin:15px;
+   padding:10px;
+   border: none;
+   background-color: #666;
+   font-size: 20px;
+   color: white;
+}
+#dialogboxDiv .dialog-input:focus{
+    outline: 0;
+}
+#dialogboxDiv .dialog-buttons-list{
+    flex-grow: 0;
+    display: flex;
+    flex-direction: row;
+    height: 70px;
+    padding: 10px;
+}
+#dialogboxDiv .dialog-btn {
+   margin: 10px;
+   flex-grow: 1;
+   background-color: #444;
+   color:white;
+  cursor: pointer;
+}
+#dialogboxDiv .dialog-btn:hover{
+   color:black;
+   background-color: #ccc;
+}
+

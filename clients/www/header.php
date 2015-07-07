@@ -35,15 +35,7 @@ function IsAdmin() {
 		// not logged at all !
 		return false;
 	}
-	
-	if (isset($GLOBALS['EMB'])) {
-		// on embedded we do not allow admin priviligeg
-		if ($GLOBALS['EMB']) return false; 
-	} else {
-		// webservices do not set this variable (only index.php use it)
-		return false;
-	}
-	
+		
 	// if UUID match
 	return ($GLOBALS['USER']['UUID'] == ADMIN_UUID);
 }
