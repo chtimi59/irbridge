@@ -18,6 +18,7 @@ UNKNOW0 : UNKNOW-0 ir propriatary codec
 */
 #define NEC
 
+
 #ifdef NEC
 #define DECODE   nec_decode
 #define RESET    nec_decode_reset
@@ -41,9 +42,19 @@ int main()
 	char buffer[BUF_SIZE];	
 	int fd = open("/dev/lirc0", O_RDWR);
 	int end=0;
+
+	#ifdef RAW
+	fprintf(stderr, "Test RAW\r\n");
+	#endif
+	#ifdef NEC
+	fprintf(stderr, "Test NEC\r\n");
+	#endif
+	#ifdef NEC
+	fprintf(stderr, "Test UNKNOW0\r\n");
+	#endif
 	
 	if (fd == -1) {
-		fprintf(stderr, "error opening device\n\r");
+		fprintf(stderr, "error opening device\r\n");
 		return 1;
 	};
 
@@ -64,12 +75,12 @@ int main()
 			switch (c)
 			{
 				default:
-					fprintf(stderr, "unknown command '%c'\n\r",c);
+					fprintf(stderr, "unknown command '%c'\r\n",c);
 				case 'h':					
-					fprintf(stderr, "h - help\n\r");
-					fprintf(stderr, "q - quit\n\r");
-					fprintf(stderr, "1 - send test 1'\n\r");
-					fprintf(stderr, "2 - send test 2'\n\r");
+					fprintf(stderr, "h - help\r\n");
+					fprintf(stderr, "q - quit\r\n");
+					fprintf(stderr, "1 - send test 1'\r\n");
+					fprintf(stderr, "2 - send test 2'\r\n");
 					break;					
 				case 0x3:
 				case 0x4:
@@ -79,12 +90,12 @@ int main()
 					
 				#if defined(NEC)
 				case '1': {
-					sample_t TEST[4] = { 0x0, 0xF7, 0x40, 0xBF};
+					sample_t TEST[4] = { 0x0, 0xF7, 0xC0, 0x3F};
 					char * bits = bytes2string(TEST, 32);
 					lirc_t* ir = NULL;
 					size_t  nir = 0;
 					nir = ENCODE(bits, &ir);
-					fprintf(stderr,"send TEST1 -- %i : %s\n\r",nir,bits);
+					fprintf(stderr,"send TEST1 -- %i : %s\r\n",nir,bits);
 					write(fd, (void *)ir, nir);
 					free(ir);
 					free(bits);
@@ -95,7 +106,7 @@ int main()
 					lirc_t* ir = NULL;
 					size_t  nir = 0;
 					nir = ENCODE(bits, &ir);
-					fprintf(stderr,"send TEST1 -- %i : %s\n\r",nir,bits);
+					fprintf(stderr,"send TEST1 -- %i : %s\r\n",nir,bits);
 					write(fd, (void *)ir, nir);
 					free(ir);
 					free(bits);
@@ -116,7 +127,7 @@ int main()
 					lirc_t data = *(lirc_t*)&buffer[p];
 					int isPulse = (data & PULSE_BIT);
 					__u32 lenght = (__u32)(data & PULSE_MASK);
-					fprintf(stderr, "%s %u\n\r", (isPulse) ? "pulse" : "space", lenght);
+					fprintf(stderr, "%s %u\r\n", (isPulse) ? "pulse" : "space", lenght);
 				}
 				#endif
 			
@@ -127,12 +138,12 @@ int main()
 					if (DECODE(&in, &len)) {
 						sample_t* decoded = NULL;
 						size_t n = string2bytes(BUFF, &decoded);
-						printf("%i : %s\n\r", BUFF_IDX, BUFF);
+						printf("%i : %s\r\n", BUFF_IDX, BUFF);
 						{
 							unsigned int i;						
 							for (i = 0; i<(n / sizeof(sample_t)); i++)
-								printf("0x%X ", decoded[i]);
-							printf("\n\r");
+								fprintf(stderr,"0x%X ", decoded[i]);
+							fprintf(stderr,"\r\n");
 						}
 						free(decoded);
 						RESET();
@@ -144,7 +155,7 @@ int main()
 	}
 	
 	reset_terminal_mode();
-	printf("quit\n\r");
+	printf("quit\r\n");
 	if (fd) close(fd);
 	return 0;
 }
@@ -159,17 +170,17 @@ int testlirc(int fd)
 		/* can't do ioctls on a pipe */
 	}
 	else if ((fstat(fd, &s) != -1) && (!S_ISCHR(s.st_mode))) {
-		fprintf(stderr, "error device is not a character device\n\r");
+		fprintf(stderr, "error device is not a character device\r\n");
 		close(fd);
 		return 1;
 	}
 	else if (ioctl(fd, LIRC_GET_REC_MODE, &mode) == -1) {
-		fprintf(stderr, "error device do not supports rec mode\n\r");
+		fprintf(stderr, "error device do not supports rec mode\r\n");
 		close(fd);
 		return 1;
 	}
 	else if (mode != LIRC_MODE_MODE2) {
-		fprintf(stderr, "error device 'mode2' type expected\n\r");
+		fprintf(stderr, "error device 'mode2' type expected\r\n");
 		close(fd);
 		return 1;
 	}
@@ -177,20 +188,20 @@ int testlirc(int fd)
 	{
 		__u32 t;
 		if (ioctl(fd, LIRC_GET_FEATURES, &t) == -1) {
-			fprintf(stderr, "error\n\r");
+			fprintf(stderr, "error\r\n");
 		}
 		else {
-			if (t & LIRC_CAN_SEND_RAW) fprintf(stderr, "LIRC_CAN_SEND_RAW\n\r");
-			if (t & LIRC_CAN_SEND_PULSE) fprintf(stderr, "LIRC_CAN_SEND_PULSE\n\r");
-			if (t & LIRC_CAN_SEND_MODE2) fprintf(stderr, "LIRC_CAN_SEND_MODE2\n\r");
-			if (t & LIRC_CAN_SEND_LIRCCODE) fprintf(stderr, "LIRC_CAN_SEND_LIRCCODE\n\r");
-			if (t & LIRC_CAN_SET_SEND_CARRIER) fprintf(stderr, "LIRC_CAN_SET_SEND_CARRIER\n\r");
-			if (t & LIRC_CAN_SET_SEND_DUTY_CYCLE) fprintf(stderr, "LIRC_CAN_SET_SEND_DUTY_CYCLE\n\r");
-			if (t & LIRC_CAN_REC_RAW) fprintf(stderr, "LIRC_CAN_REC_RAW\n\r");
-			if (t & LIRC_CAN_REC_PULSE) fprintf(stderr, "LIRC_CAN_REC_PULSE\n\r");
-			if (t & LIRC_CAN_REC_MODE2) fprintf(stderr, "LIRC_CAN_REC_MODE2\n\r");
-			if (t & LIRC_CAN_REC_LIRCCODE) fprintf(stderr, "LIRC_CAN_REC_LIRCCODE\n\r");
-			fprintf(stderr, "%08X\n\r", t);
+			if (t & LIRC_CAN_SEND_RAW) fprintf(stderr, "LIRC_CAN_SEND_RAW\r\n");
+			if (t & LIRC_CAN_SEND_PULSE) fprintf(stderr, "LIRC_CAN_SEND_PULSE\r\n");
+			if (t & LIRC_CAN_SEND_MODE2) fprintf(stderr, "LIRC_CAN_SEND_MODE2\r\n");
+			if (t & LIRC_CAN_SEND_LIRCCODE) fprintf(stderr, "LIRC_CAN_SEND_LIRCCODE\r\n");
+			if (t & LIRC_CAN_SET_SEND_CARRIER) fprintf(stderr, "LIRC_CAN_SET_SEND_CARRIER\r\n");
+			if (t & LIRC_CAN_SET_SEND_DUTY_CYCLE) fprintf(stderr, "LIRC_CAN_SET_SEND_DUTY_CYCLE\r\n");
+			if (t & LIRC_CAN_REC_RAW) fprintf(stderr, "LIRC_CAN_REC_RAW\r\n");
+			if (t & LIRC_CAN_REC_PULSE) fprintf(stderr, "LIRC_CAN_REC_PULSE\r\n");
+			if (t & LIRC_CAN_REC_MODE2) fprintf(stderr, "LIRC_CAN_REC_MODE2\r\n");
+			if (t & LIRC_CAN_REC_LIRCCODE) fprintf(stderr, "LIRC_CAN_REC_LIRCCODE\r\n");
+			fprintf(stderr, "%08X\r\n", t);
 		}
 	}
 	
