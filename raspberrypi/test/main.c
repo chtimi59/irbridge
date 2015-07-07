@@ -89,7 +89,34 @@ int main()
 				case 'q':
 					end = 1;
 					break;
-					
+				
+				#if defined(UNKNOW0)
+				case '1': {
+					sample_t TEST[5] = { 0x54, 0x7F, 0xFC, 0x87, 0x58 };
+					char * bits = bytes2string(TEST, 39);
+					lirc_t* ir = NULL;
+					size_t  nir = 0;
+					nir = ENCODE(bits, &ir);
+					fprintf(stderr,"send TEST1 -- %i : %s\r\n",nir,bits);
+					write(fd, (void *)ir, nir);
+					free(ir);
+					free(bits);
+					break;
+				}
+				case '2': {
+					sample_t TEST[5] = { 0x54, 0x7F, 0xFC, 0x8C, 0x5C };
+					char * bits = bytes2string(TEST, 39);
+					lirc_t* ir = NULL;
+					size_t  nir = 0;
+					nir = ENCODE(bits, &ir);
+					fprintf(stderr,"send TEST2 -- %i : %s\r\n",nir,bits);
+					write(fd, (void *)ir, nir);
+					free(ir);
+					free(bits);
+					break;
+				}
+				#endif
+				
 				#if defined(NEC)
 				case '1': {
 					sample_t TEST[4] = { 0x0, 0xF7, 0xC0, 0x3F};
