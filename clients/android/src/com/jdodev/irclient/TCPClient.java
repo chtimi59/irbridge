@@ -1,19 +1,11 @@
 package com.jdodev.irclient;
 
-import java.io.BufferedReader;
-import java.io.BufferedWriter;
 import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.OutputStreamWriter;
-import java.net.DatagramPacket;
-import java.net.InetAddress;
-import java.net.MulticastSocket;
-import java.net.ServerSocket;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.net.Socket;
 
 import android.app.Activity;
-import android.content.Context;
-import android.net.wifi.WifiManager;
 import android.util.Log;
 
 
@@ -22,19 +14,19 @@ public class TCPClient extends Thread
 	public final static String TAG = "TCPCLIENT";
 	
 	public final static int TCP_PORT = 8000;
-	public static String SERVER_ADDR = "172.16.32.74";
-	private final static int MAXTCP_PAYLOADSZ = 65527;
+	public final static int BUFF_SIZE = 1024*1024;
+	public static String SERVER_ADDR = "192.168.2.13";
+	
 	
 	public interface Listener {
 		public void OnThreadStart();
-		public void OnDataReceived(Byte[] frame);
+		public void OnDataReceived(byte[] data, int sz);
 		public void OnThreadEnd();
 	}
 	
 	private Activity mCtx = null;
 	private Listener mListener = null;
 	private volatile boolean done = false;
-	private volatile OutputStreamWriter out = null;
 	
 	public TCPClient(Activity ctx, String address, Listener listener) {
 		mCtx = ctx;
@@ -47,6 +39,11 @@ public class TCPClient extends Thread
 	    done = true;
 	}
 	
+	byte[] mOutByte = null;
+	public void send(byte[] data) {
+		mOutByte = data;
+	}
+	
 	private void end() {		
 		if (mListener!=null) mCtx.runOnUiThread(new Runnable() {
 			@Override
@@ -54,59 +51,70 @@ public class TCPClient extends Thread
 			mListener.OnThreadEnd();
 		} });
 		
-		Log.i(TAG,"Rx Thread end");
+		Log.i(TAG,"Thread end");
 	}
-	
-	
+		
 	@Override 
 	public synchronized void run() { 
-		Log.i(TAG,"Rx Thread start");
-		Socket socket = null;
-		
+		Log.i(TAG,"Thread start");
+		byte[] rxbuffer = new byte[BUFF_SIZE];
+    	Socket socket = null;
+    	InputStream in = null;
+    	OutputStream out = null;
+    	
 		// init
 		try {
 			socket = new Socket(SERVER_ADDR, TCP_PORT);
 			socket.setSoTimeout(3000);
-			OutputStreamWriter out = new OutputStreamWriter(socket.getOutputStream());
-			
+			in = socket.getInputStream();
+			out = socket.getOutputStream();
 		} catch (IOException e) {
 			e.printStackTrace();
 			Log.e(TAG,e.toString());
 			end(); 
+			return;
 		}
-		
+				   
 		if (mListener!=null) mCtx.runOnUiThread(new Runnable() {
 			@Override
 			public void run() {
 			mListener.OnThreadStart();
 		} });
 		
-		// read
-		while (!done) {
+		
+		
+		while (!done && socket.isConnected())
+		{
 			try {
-		           
-				InputStreamReader in = new InputStreamReader(socket.getInputStream());
-				
-				in.read(buffer) {
-					mCtx.runOnUiThread(new Runnable() {
-						@Override
-						public void run() {
-							mListener.OnDataReceived(frame);
-					} });	
+				// rx
+				if (in.available()>0) {
+					final int sz = in.read(rxbuffer);	
+					if (sz>0) {
+						final byte[] copy = rxbuffer.clone(); 
+						mCtx.runOnUiThread(new Runnable() {
+							@Override
+							public void run() {
+								mListener.OnDataReceived(copy, sz);
+						} });								
+					}
 				}
-				
-								
+				// tx
+				if (mOutByte!=null) {
+					out.write(mOutByte);
+					mOutByte = null;
+				}
 			} catch (IOException e) {
+				e.printStackTrace();
 				Log.e(TAG,e.toString());
+				done = true;
 			}
 		}
-		
-		
+				
 		// end
-		socket.close();
-		socket = null;
-		packet = null;
-		Log.i(TAG,"Rx Thread proper end");
+		try { in.close(); } catch (IOException e) { }
+		try { out.close(); } catch (IOException e) { }
+		try { socket.close(); } catch (IOException e) { }
+		Log.i(TAG,"Thread proper end");
 		end(); 		
 	} 
 }
