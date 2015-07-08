@@ -8,3 +8,5 @@ BUILD_FLAG="$PRE_BUILD_FLAG"
 export GLOBAL_DEFINE="UNITARY_TEST"
 
 "$NDK_ROOT"/ndk-build $BUILD_FLAG
+
+mkdir -p res

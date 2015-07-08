@@ -1,6 +1,12 @@
 package com.jdodev.ircodec;
 
-class IRcodec
+public class IRcodec
 {
+
+    static {
+        System.loadLibrary("ircodec");
+    }
+    
+    public native String stringFromJNI();
 
 }
