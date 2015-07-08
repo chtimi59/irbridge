@@ -9,7 +9,7 @@ OBJS = main.o iokey.o
 all: $(EXEC)
 
 $(IRCODECPATH)/lib/libircodec.a :
-	@(cd $(IRCODECPATH)/linux && $(MAKE))
+	@(cd $(IRCODECPATH)/projects/linux && $(MAKE))
 
 scale: $(OBJS) $(IRCODECPATH)/lib/libircodec.a
 	$(CC) -o  $@  $^ -lircodec $(LDFLAGS)

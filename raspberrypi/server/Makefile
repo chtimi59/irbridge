@@ -9,7 +9,7 @@ OBJS = main.o server.o
 all: $(EXEC)
 
 $(IRCODECPATH)/lib/libircodec.a :
-	@(cd $(IRCODECPATH)/linux && $(MAKE))
+	@(cd $(IRCODECPATH)/projects/linux && $(MAKE))
 	
 server: $(OBJS)
 	$(CC) -o  $@  $^  $(LDFLAGS)
