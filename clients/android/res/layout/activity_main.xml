@@ -2,18 +2,6 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent" >
-
-     <TextView
-         android:id="@+id/textView1"
-         android:layout_width="match_parent"
-         android:layout_height="wrap_content"
-         android:layout_above="@+id/BottomMenu"
-         android:layout_below="@+id/button1"
-         android:layout_margin="5dp"
-         android:background="#222"
-         android:padding="5dp"
-         android:text=""
-         android:textSize="30sp" />
      
     <LinearLayout
         android:id="@+id/BottomMenu"
@@ -24,30 +12,61 @@
         android:layout_alignParentLeft="true"
         android:layout_alignParentRight="true"
         android:layout_alignParentBottom="true" >
-
-        <ToggleButton
-	        android:id="@+id/toggleButton1"
-	        android:layout_width="match_parent"
-	        android:layout_height="match_parent"
-	        android:text="ToggleButton" />
         
     </LinearLayout>
 
-    <Button
+    <ToggleButton
         android:id="@+id/buttonLedSwitch"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/editText1"
+        android:text="LED"
+        android:textOff="LED OFF"
+        android:textOn="LED ON" />
+
+    <EditText
+        android:id="@+id/editText1"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_alignParentLeft="true"
         android:layout_alignParentTop="true"
-        android:text="LED" />
+        android:ems="10" >
+
+        <requestFocus />
+    </EditText>
+
+    <Button
+        android:id="@+id/toggleButton1"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_alignBottom="@+id/toggleAngleMeasurement"
+        android:layout_alignParentRight="true"
+        android:layout_alignParentTop="true"
+        android:layout_toRightOf="@+id/editText1"
+        android:text="CONNECT" />
 
     <ToggleButton
         android:id="@+id/toggleAngleMeasurement"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_alignBaseline="@+id/button1"
-        android:layout_alignBottom="@+id/button1"
+        android:layout_alignBaseline="@+id/buttonLedSwitch"
+        android:layout_alignBottom="@+id/buttonLedSwitch"
+        android:layout_toRightOf="@+id/buttonLedSwitch"
+        android:text="Angle"
+        android:textOff="ANGLE OFF"
+        android:textOn="ANGLE ON" />
+
+    <TextView
+        android:id="@+id/textView1"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
+        android:layout_alignParentLeft="true"
         android:layout_alignParentRight="true"
-        android:text="Angle" />
+        android:layout_below="@+id/toggleAngleMeasurement"
+        android:gravity="center"
+        android:text="...Kg"
+        android:textColor="#FFF"
+        android:textSize="70sp" />
     
 </RelativeLayout>

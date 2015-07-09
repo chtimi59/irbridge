@@ -136,15 +136,8 @@ int main(int argc, char *argv[])
 					continue;
 				}
 
-				/* do it 10 times ! */
-				{ 
-				  int y=0;
-				  for(y=0;y<10;y++) {
-					usleep(100*1000);
-					if (c!=write(fd, (void *)buffer,c)) {
-						perror("write()");
-					}
-				  }
+				if (c!=write(fd, (void *)buffer,c)) {
+					perror("write()");
 				}
 				
 				/* flush read (to avoid loopback) */

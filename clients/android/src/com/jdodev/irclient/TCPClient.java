@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.Socket;
+import java.util.Arrays;
 
 import android.app.Activity;
 import android.util.Log;
@@ -15,8 +16,8 @@ public class TCPClient extends Thread
 	
 	public final static int TCP_PORT = 8000;
 	public final static int BUFF_SIZE = 1024*1024;
-	public static String SERVER_ADDR = "192.168.2.13";
 	
+	private String mServerAddr;
 	
 	public interface Listener {
 		public void OnThreadStart();
@@ -31,7 +32,8 @@ public class TCPClient extends Thread
 	public TCPClient(Activity ctx, String address, Listener listener) {
 		mCtx = ctx;
 		mListener = listener;
-		SERVER_ADDR = address;
+		mServerAddr = address;
+		Log.d(TAG,"'"+address+"'");
        	done = false;
 	}
 		
@@ -64,7 +66,7 @@ public class TCPClient extends Thread
     	
 		// init
 		try {
-			socket = new Socket(SERVER_ADDR, TCP_PORT);
+			socket = new Socket(mServerAddr, TCP_PORT);
 			socket.setSoTimeout(3000);
 			in = socket.getInputStream();
 			out = socket.getOutputStream();
@@ -90,7 +92,7 @@ public class TCPClient extends Thread
 				if (in.available()>0) {
 					final int sz = in.read(rxbuffer);	
 					if (sz>0) {
-						final byte[] copy = rxbuffer.clone(); 
+						final byte[] copy = Arrays.copyOf(rxbuffer, sz);
 						mCtx.runOnUiThread(new Runnable() {
 							@Override
 							public void run() {
