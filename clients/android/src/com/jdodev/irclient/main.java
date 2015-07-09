@@ -34,6 +34,9 @@ public class main extends Activity implements TCPClient.Listener {
         mToggleAngleMeasurement = (ToggleButton)findViewById(R.id.toggleAngleMeasurement);
         mButtonLedSwitch = (Button)findViewById(R.id.buttonLedSwitch);
         
+        IRcodec.Unkn0DecodeReset();
+		IRcodec.NecDecodeReset();
+		
         mButtonLedSwitch.setOnClickListener(new OnClickListener() {
 			@Override
 			public void onClick(View v) {
