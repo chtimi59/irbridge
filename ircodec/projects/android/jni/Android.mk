@@ -20,4 +20,6 @@ LOCAL_SRC_FILES := \
                     $(IRCODEC_SRC)/ir_unkn0.c  \
                     ircodec.c
 					
+LOCAL_LDLIBS := -L$(SYSROOT)/usr/lib -llog 
+			
 include $(BUILD_SHARED_LIBRARY)

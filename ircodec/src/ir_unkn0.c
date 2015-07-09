@@ -52,7 +52,7 @@ int unkn0_decode(lirc_t ** pIn, size_t * pLen)
 			}
 
 			/* deal with data (drop if overflow!)*/
-			if (unkn0_DECODE_BUF_IDX<(unkn0_DECODE_BUFF_SIZE + 2)) {
+			if (unkn0_DECODE_BUF_IDX<(unkn0_DECODE_BUFF_SIZE-2)) {
 				if (!isPulse) unkn0_DECODE_BUFF[unkn0_DECODE_BUF_IDX++] = (lenght>UNKN0_TD) ? '1' : '0';
 			}
 			

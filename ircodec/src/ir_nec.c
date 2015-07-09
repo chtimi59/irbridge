@@ -52,7 +52,7 @@ int nec_decode(lirc_t ** pIn, size_t * pLen)
 			}
 
 			/* deal with data (drop if overflow!)*/
-			if (nec_DECODE_BUF_IDX<(nec_DECODE_BUFF_SIZE + 2)) {
+			if (nec_DECODE_BUF_IDX<(nec_DECODE_BUFF_SIZE-2)) {
 				if (!isPulse) nec_DECODE_BUFF[nec_DECODE_BUF_IDX++] = (lenght>NEC_TD) ? '1' : '0';
 			}
 			
