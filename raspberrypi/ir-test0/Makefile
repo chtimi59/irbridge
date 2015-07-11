@@ -3,20 +3,20 @@ IRCODECPATH=../../ircodec
 
 CFLAGS=-W -Wall -ansi -pedantic -I$(IRCODECPATH)/include
 LDFLAGS=-L$(IRCODECPATH)/lib
-EXEC=scale
+EXEC=test
 OBJS = main.o iokey.o
 
 all: $(EXEC)
 
 $(IRCODECPATH)/lib/libircodec.a :
-	@(cd $(IRCODECPATH)/projects/linux && $(MAKE))
+	@(cd $(IRCODECPATH)/linux && $(MAKE))
 
-scale: $(OBJS) $(IRCODECPATH)/lib/libircodec.a
+test: $(OBJS) $(IRCODECPATH)/lib/libircodec.a
 	$(CC) -o  $@  $^ -lircodec $(LDFLAGS)
 
 %.o: %.c
 	$(CC) -o $@ -c $< $(CFLAGS)
 
 clean:
-	@rm -f scale
+	@rm -f test
 	@rm -f *.o
