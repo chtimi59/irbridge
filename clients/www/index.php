@@ -18,21 +18,26 @@
 
 <body>
 <div ng-app="" ng-init="">
-
-	<a href="index.php?action='.ACTION_CREATE_ACCOUNT.'">[register]</a>;
 	<?PHP if (!$USER) { ?>
 	<div id="dialogboxDiv">
 		<div class="dialog-body">
+			<div class="form-logo"></div>
+			<div class="form-block">
 			<?PHP
 				print '<form action="index.php?action='.ACTION_LOGGING.'" method="post">';        
-				print NAME.':<input type="text" name="name" value="'.(($USER)?$USER['NAME']:'').'"/><br>';
-				print PASSWORD.':<input type="password" name="pw" /><br>';
-				print '<input type="submit" value="Login"/>';
-				print '<button>Register</button>';
+				print '<label for="name">Username:</label>';
+				print '<input type="text" name="name" value="'.(($USER)?$USER['NAME']:'').'"/><br>';
+				print '<label for="pw">Password:</label>';
+				print '<input type="password" name="pw" /><br>';
+				print '<button>Log in</button>';
+				print '<div class="form-extra">';
+					print '<a href="index.php?action='.ACTION_CREATE_ACCOUNT.'">Still not a member? click here to register</a>';
+					print '<br>';
+					print '<a href="">Forgot your password?</a>';
+				print '</div>';
 				print '</form>';
 				?>
-			<a href="index.php?action='.ACTION_CREATE_ACCOUNT.'">[register]</a>;
-			<div class="dialog-buttons-list">
+			</div>
 		</div>
 	</div>
 	<?PHP } ?>
