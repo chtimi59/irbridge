@@ -1,4 +1,6 @@
-![Source Image](/banner.png)
+<p align="center">
+  <img src="banner.png" alt="banner"/>
+</p>
 
 IR-Bridge Project / RaspberryPi
 ================================
@@ -19,7 +21,7 @@ Obvisouly a lot of similar projects are available on the net, but here the key-f
 * Full infrared's waveforms are bridged to allow clients to implement various proprietary IR protocols.
 * A cross platform (Android, Linux, Windows) 'ircodec' library makes the job easier to deal with these raw's waveforms
 
-At the really beginning of this project I start with NEC protocol, which is one of the very common infrared protocol used for remotes.
+At the really beginning of this project I start with NEC protocol (waveform below), which is one of the very common infrared protocol used for remotes.
 Consequently this project provides a way to do a universal remote or... maybe make a first low-cost step into the domotic world.
 <p align="center">
   <img src="nec.png" alt="nec waveform"/>
@@ -35,7 +37,7 @@ History
 
 Prequists
 ================
-This project is based on lirc for linux.
+This project is based on lirc for linux, so you need to install this package with the following line
 ```
 sudo apt-get install lirc
 ```
@@ -92,8 +94,8 @@ q - quit
 3 - send 88.3Kg
 ```
 
-Folders :
-=========
+Folders Layout:
+===============
 
 * raspberrypi/ir-test0 : really first test with lirc driver, it shows pulse/space waveform when an infrared activity is detected
 * raspberrypi/ir-test1 : show NEC code when a NEC-based remote is used
