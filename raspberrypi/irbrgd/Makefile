@@ -1,9 +1,9 @@
 CC=gcc
 IRCODECPATH=../../ircodec
 
-CFLAGS=-W -Wall -ansi -pedantic -I$(IRCODECPATH)/include
+CFLAGS=-W -Wall -ansi -D_GNU_SOURCE -pedantic -I$(IRCODECPATH)/include
 LDFLAGS=-L$(IRCODECPATH)/lib
-EXEC=server
+EXEC=irbrgd
 OBJS = main.o server.o
 
 all: $(EXEC)
@@ -11,7 +11,7 @@ all: $(EXEC)
 $(IRCODECPATH)/lib/libircodec.a :
 	@(cd $(IRCODECPATH)/projects/linux && $(MAKE))
 	
-server: $(OBJS)
+irbrgd: $(OBJS)
 	$(CC) -o  $@  $^  $(LDFLAGS)
 	
 %.o: %.c
@@ -19,4 +19,4 @@ server: $(OBJS)
 
 clean:
 	@rm -f *.o
-	@rm -f server	
+	@rm -f irbrgd	

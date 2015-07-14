@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <errno.h>
 #include <string.h>
+#include <syslog.h>
 
 #define SERVER_DEFINE
 #include "server.h"
@@ -13,14 +14,14 @@ int init_connection(int port)
 	memset(&sin, 0, sizeof(sin));
 
 	if ((port<1)||(port>65000)) {
-		fprintf(stderr,"invalid port\n");
+		syslog(LOG_ERR,"invalid port");
 		return -1;
 	}
 	
 	sock = socket(AF_INET, SOCK_STREAM, 0);
 	if (sock == INVALID_SOCKET)
 	{
-		perror("connect()");
+		syslog(LOG_ERR,"connect() %s", strerror(errno));
 		return errno;
 	}
 
@@ -30,19 +31,19 @@ int init_connection(int port)
 
 	if (bind(sock, (SOCKADDR *)&sin, sizeof sin) == SOCKET_ERROR)
 	{
-		perror("connect()");
+		syslog(LOG_ERR,"connect() %s", strerror(errno));
 		closesocket(sock);
 		return errno;
 	}
 
 	if (listen(sock, MAX_CLIENTS) == SOCKET_ERROR)
 	{
-		perror("connect()");
+		syslog(LOG_ERR,"connect() %s", strerror(errno));
 		closesocket(sock);
 		return errno;
 	}
 	
-	fprintf(stderr,"socket created on port %d\n",port);
+	syslog(LOG_NOTICE,"socket created on port %d",port);
 	return sock;
 }
 
@@ -63,7 +64,7 @@ void add_client(int sock)
 	
 	csock = accept(sock, (SOCKADDR *)&csin, &sinsize);
 	if (csock == SOCKET_ERROR) {
-		perror("connect()");
+		syslog(LOG_ERR,"accept() %s", strerror(errno));
 		return;
 	}	
 	ip = inet_ntoa(csin.sin_addr);
@@ -72,7 +73,7 @@ void add_client(int sock)
 	_clients_count++;	
 	_clients[idx] = csock;	
 	
-	printf("new client[%d]: %s\n", idx, ip);	
+	syslog(LOG_NOTICE,"new client[%d]: %s", idx, ip);	
 	
 	debug_clients_display();
 }
@@ -83,7 +84,7 @@ void remove_client(int csock)
 	int moveup=0;
 	closesocket(csock);
 	
-	printf("remove client\n");	
+	syslog(LOG_NOTICE,"remove client");	
 	
 	for (idx=0; idx<_clients_count ;idx++) {
 		if (_clients[idx]==csock)
@@ -100,7 +101,7 @@ void remove_client(int csock)
 void debug_clients_display() {
 	int idx;
 	for (idx=0;idx<_clients_count;idx++) {
-		printf("%d : %d\n", idx, _clients[idx]);	
+		syslog(LOG_NOTICE,"%d : %d\n", idx, _clients[idx]);	
 	}	
 }	
 
@@ -121,8 +122,8 @@ int read_client(SOCKET sock, char *buffer)
 	int n = 0;
 	if ((n = recv(sock, buffer, BUF_SIZE, 0)) < 0)
 	{
-		fprintf(stderr,"recv()\n");
-		/* if recv error we disonnect the client */
+		syslog(LOG_ERR,"recv()");
+		/* if recv error we disconnect the client */
 		return 0;
 	}
 	return n;
@@ -135,7 +136,7 @@ void write_toallclients(const char *buffer, size_t len)
 		SOCKET csock = client(idx);
 		size_t ret = send(csock, buffer, len, 0);
 		if (ret!=len) {
-			perror("send()");
+			syslog(LOG_ERR,"send() %s", strerror(errno));
 		}
 	}	
 }
