@@ -20,7 +20,6 @@ jan_dorgeville@hotmail.com
 
 */
 
-
 #include <stdlib.h>
 #include <stdio.h>
 #include <stdarg.h>
@@ -40,6 +39,12 @@ jan_dorgeville@hotmail.com
 
 #include "server.h"
 #include "lirc.h"
+
+#include <fcntl.h>
+#include <stdio.h>
+#include <string.h>
+#include <unistd.h>
+
 
 void usage() {
 	fprintf(stderr, "usage: irbdg start|stop\n");
@@ -111,10 +116,17 @@ void signal_handler(int sig) {
 	}
 }
 
+
+/* -- some unix cmd for daemon testing --
+ * ps -ef|grep irbrgd
+ * tail -f /var/log/syslog
+ * sudo lsof /etc/irbrgd/irbrgd.lock
+*/
 void daemonize()
 {
 	int i,lfp;
 	char str[10];
+	
 	if(getppid()==1) return; /* already a daemon */
 	
 	/* fork! */
@@ -123,10 +135,7 @@ void daemonize()
 		syslog(LOG_ERR,"error: fork error");
 		exit(1);
 	}	
-	if (i>0) {
-		syslog(LOG_ERR,"error: parent exits");
-		exit(0);
-	}
+	if (i>0) exit(0); /* keep going but stop parent */
 	
 	/* child (daemon) continues */
 	setsid(); /* obtain a new process group */
@@ -141,6 +150,7 @@ void daemonize()
 	umask(027);
 
 	/* create lock file */
+	syslog(LOG_NOTICE,"locking for a new daemon !");
 	lfp=open(LOCK_FILE,O_RDWR|O_CREAT,0640);
 	if (lfp<0) {
 		syslog(LOG_ERR,"error: can't open lock file "LOCK_FILE);
@@ -153,8 +163,10 @@ void daemonize()
 	
 	/* record pid to lockfile */
 	sprintf(str,"%d\n",getpid());
-	syslog(LOG_NOTICE,"daemon started on PID: %d",getpid());
 	write(lfp,str,strlen(str)); 
+	fsync(lfp);
+	
+	syslog(LOG_NOTICE,"daemon started on PID: %d",getpid());
 	
 	/* catch signals */
 	signal(SIGCHLD,SIG_IGN); /* ignore child */
@@ -163,18 +175,20 @@ void daemonize()
 	signal(SIGTTIN,SIG_IGN); /* ignore stdout */
 	signal(SIGHUP,signal_handler); /* catch hangup signal */
 	signal(SIGTERM,signal_handler); /* catch kill signal */
+	return;
 }
 
 int getPID() {
-	int i;
-	struct flock fl = { 0,0,0,0,0 };
-	int lfp=open(LOCK_FILE,O_RDONLY);
+	int i,lfp;
+	struct flock fl;
+	memset (&fl, 0, sizeof(fl));
+	lfp=open(LOCK_FILE,O_RDONLY);
 	if (lfp<0) return -1;
 	i=fcntl(lfp, F_GETLK, &fl);
 	close(lfp);
 	
-	if (i<0) return -1;
-	if (fl.l_type == F_UNLCK) return -1;
+	if (i<0) return -2;
+	if (fl.l_type == F_UNLCK) return -3;
 	return fl.l_pid;
 }
 
@@ -229,7 +243,7 @@ int main(int argc, char**argv)
 			int ret;
 			int pid = getPID();
 			if (pid<1) {
-				fprintf(stderr, "nothing to stop\n");
+				fprintf(stderr, "nothing to stop (%d)\n", pid);
 				exit(1);
 			}
 			fprintf(stderr, "stopping [%d]\n", pid);
@@ -381,5 +395,6 @@ int main_demonized()
 	syslog(LOG_NOTICE,"proper end");
     return 0; 
 }
+
 
 /* EOF */
