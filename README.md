@@ -1,4 +1,4 @@
-<p align="right">
+<p align="left">
   <img src="banner.png" alt="banner"/>
 </p>
 
@@ -7,8 +7,7 @@ IR-Bridge Project / RaspberryPi
 
 A daemon TCP server to offer a raw Infrared to TCP bridge
 
-Tested on Raspberry PI model B Rev2
-Distrib: [raspdebian](https://www.raspberrypi.org/downloads/) 3.12.35
+Tested on Raspberry PI model B Rev2,  Distrib: [raspdebian](https://www.raspberrypi.org/downloads/) 3.12.35
 
 Abstract
 ========
@@ -27,7 +26,7 @@ Consequently this project provides a way to do a universal remote or... maybe ma
   <img src="nec.png" alt="nec waveform"/>
 </p>
 
-But in a second step, I've also reverse-engineered my starfrit scale which use a proprietary IR protocols.
+In a second step, I've reverse-engineered my starfrit scale which use a proprietary IR protocols.
 This part is referenced as 'unkn0' protocol in the 'ircodec' sources.
 
 History
@@ -37,7 +36,7 @@ History
 
 Prequists
 ================
-This project is based on lirc for linux, so you need to install this package with the following line
+This project is based on lirc for linux, so you need to install the package with the following line
 ```
 sudo apt-get install lirc
 ```
@@ -58,16 +57,16 @@ Once your lirc is fully functional, remove the default lirc daemon start script
 ```
 sudo mv /etc/init.d/lirc ~ 
 ```
-Compilation and setup:
+Then compile IRBridge with:
 ```
 cd raspberrypi/irbrgd
 make && sudo ./setup.sh
 ```
-
-See self explained configuration file: /etc/irbrgd/irbrgd.conf
-
+See self explained configuration file lays here
+```
+/etc/irbrgd/irbrgd.conf
+```
 To manually stop the daemon:
-
 ```
 sudo irbrgd stop
 ```
@@ -79,13 +78,13 @@ Clients :
 
 **clients/android**
 
-An eclipse project for a very basic android sample project
+A very basic android sample project (Tuned for Eclipse)
 ![Source Image](/android.png)
 
 
 **clients/linux**
 
-A regular TCP client which also shows the measured weight and  provide the following commands:
+A regular TCP client which also shows the measured weight and provides the following commands:
 ```
 h - help
 q - quit
