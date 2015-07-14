@@ -21,7 +21,9 @@ Obvisouly a lot of similar projects are available on the net, but here the key-f
 
 At the really beginning of this project I start with NEC protocol, which is one of the very common infrared protocol used for remotes.
 Consequently this project provides a way to do a universal remote or... maybe make a first low-cost step into the domotic world.
-->![Source Image](/nec.png)<-
+<p align="center">
+  <img src="nec.png" alt="nec waveform"/>
+</p>
 
 But in a second step, I've also reverse-engineered my starfrit scale which use a proprietary IR protocols.
 This part is referenced as 'unkn0' protocol in the 'ircodec' sources.
