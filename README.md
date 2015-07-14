@@ -19,12 +19,12 @@ Obvisouly a lot of similar projects are available on the net, but here the key-f
 * Full infrared's waveforms are bridged to allow clients to implement various proprietary IR protocols.
 * A cross platform (Android, Linux, Windows) 'ircodec' library makes the job easier to deal with these raw's waveforms
 
-At the really beginning of this project I start with NEC protocol, which is one of the very common infrared protocol for remotes.
+At the really beginning of this project I start with NEC protocol, which is one of the very common infrared protocol used for remotes.
 Consequently this project provides a way to do a universal remote or... maybe make a first low-cost step into the domotic world.
-![Source Image](/nec.png)
+->![Source Image](/nec.png)<-
 
-But in a second step, I've reverse-engineered my starfrit scale which use a proprietary IR protocols.
-This stuff is referenced as 'unkn0' protocol in the 'ircodec' sources.
+But in a second step, I've also reverse-engineered my starfrit scale which use a proprietary IR protocols.
+This part is referenced as 'unkn0' protocol in the 'ircodec' sources.
 
 History
 =======
@@ -43,24 +43,24 @@ lirc_dev
 lirc_rpi gpio_in_pin=23 gpio_out_pin=22
 ```
 
-more info here: http://alexba.in/blog/2013/01/06/setting-up-lirc-on-the-raspberrypi/  
+more information here: http://alexba.in/blog/2013/01/06/setting-up-lirc-on-the-raspberrypi/  
 lirc sources before raspberry patches: http://lirc.sourceforge.net/ 
-
-Once your lirc is fully functional, remove the default lirc start script
-```
-sudo mv /etc/init.d/lirc ~ 
-```
 	
 
 Installation :
 ==============
 
+Once your lirc is fully functional, remove the default lirc daemon start script
+```
+sudo mv /etc/init.d/lirc ~ 
+```
+Compilation and setup:
 ```
 cd raspberrypi/irbrgd
 make && sudo ./setup.sh
 ```
 
-see self explained configuration file: /etc/irbrgd/irbrgd.conf
+See self explained configuration file: /etc/irbrgd/irbrgd.conf
 
 To manually stop the daemon:
 
@@ -81,7 +81,7 @@ An eclipse project for a very basic android sample project
 
 **clients/linux**
 
-A regular TCP client which also show the measured weight and  provide the following commands:
+A regular TCP client which also shows the measured weight and  provide the following commands:
 ```
 h - help
 q - quit
