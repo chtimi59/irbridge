@@ -228,7 +228,6 @@ switch($action) {
 			// remove from anti-chambre
 			$sql = 'DELETE FROM `'.LOG_TMP_USER_TABLE.'` WHERE UUID="'.$_GET['verif'].'"';
 			$req = mysql_query($sql) or sqldie($sql);  
-			$data = mysql_fetch_assoc($req);			
 			
 			// auto-login
 			login($uuid);
@@ -337,7 +336,7 @@ switch($action) {
 
         if ((!isset ($_POST['name'])) || (!isset ($_POST['pw'])))
             break;
-                
+    
         $sql = 'SELECT * FROM `'.LOG_USER_TABLE.'` WHERE NAME="'.$_POST['name'].'"';
         $req = mysql_query($sql) or sqldie($sql);  
         $data = mysql_fetch_assoc($req);

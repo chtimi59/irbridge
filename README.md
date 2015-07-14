@@ -60,6 +60,7 @@ sudo mv /etc/init.d/lirc ~
 Then compile IRBridge with:
 ```
 cd raspberrypi/irbrgd
+chmod a+x setup.sh
 make && sudo ./setup.sh
 ```
 See self explained configuration file lays here
