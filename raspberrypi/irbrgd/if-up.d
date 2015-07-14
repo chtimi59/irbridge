@@ -4,14 +4,12 @@ set -e
 
 PATH=/sbin:/bin:/usr/sbin:/usr/bin
 
-# $METHOD = dhcp, static or loopback
+# $METHOD = none, dhcp, static or loopback
+# $IFACE = wlan0, --all
+# $MODE = start
 
-if [ "$METHOD" = static ]; then
-	exit 0
+if [ "$IFACE" = --all ]; then
+   /usr/sbin/irbrgd start
 fi
 
-if [ "$METHOD" = loopback ]; then
-	exit 0
-fi
 
-/usr/sbin/irbrgd start
