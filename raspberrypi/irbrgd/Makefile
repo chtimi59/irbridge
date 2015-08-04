@@ -4,7 +4,7 @@ IRCODECPATH=../../ircodec
 CFLAGS=-W -Wall -ansi -D_GNU_SOURCE -pedantic -I$(IRCODECPATH)/include
 LDFLAGS=-L$(IRCODECPATH)/lib
 EXEC=irbrgd
-OBJS = main.o server.o
+OBJS = main.o server.o led.o
 
 all: $(EXEC)
 

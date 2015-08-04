@@ -37,6 +37,7 @@ jan_dorgeville@hotmail.com
 #define LOG_FILE	"irbrgd.log"
 #define CONF_FILE	"irbrgd.conf"
 
+#include "led.h"
 #include "server.h"
 #include "lirc.h"
 
@@ -45,6 +46,12 @@ jan_dorgeville@hotmail.com
 #include <string.h>
 #include <unistd.h>
 
+/*
+ sudo /usr/sbin/irbrgd start|stop
+ sudo ./irbrgd start|stop
+ sudo vim /etc/irbrgd/irbrgd.conf
+ tail -f /var/log/syslog &
+*/
 
 void usage() {
 	fprintf(stderr, "usage: irbdg start|stop\n");
@@ -53,10 +60,12 @@ void usage() {
 
 struct {
 	int  port;
+	int  led;
 	int  starfrit;
 	char starfrit_url[256];
 } conf = {
 	8000,
+	0,
 	0,
 	{0}
 };
@@ -92,6 +101,10 @@ void readconf() {
 					}
 					if (strcmp(key,"starfrit_url")==0) { 
 						strcpy(conf.starfrit_url, p);
+						break;
+					}
+					if (strcmp(key,"led")==0) { 
+						conf.led=atoi(p);
 						break;
 					}
 				} while(0);
@@ -233,7 +246,8 @@ int main(int argc, char**argv)
 			}
 			
 			readconf();
-			syslog(LOG_NOTICE,"port %d", conf.port);
+			syslog(LOG_NOTICE,"pport %d", conf.port);
+			syslog(LOG_NOTICE,"led %d", conf.led);
 			syslog(LOG_NOTICE,"starfrit %d", conf.starfrit);
 			syslog(LOG_NOTICE,"starfrit_url %s", conf.starfrit_url);
 			daemonize();
@@ -255,6 +269,8 @@ int main(int argc, char**argv)
 	} while(0);
 
 	ret=main_demonized();
+	set_led(conf.led,0);
+	unregister_led(conf.led);
 	closelog();
 	return ret;
 }
@@ -272,7 +288,10 @@ int main_demonized()
 	__u32 mode;
 	char buffer[BUF_SIZE];	
 	fd_set rdfs; /* synchronize FileDescriptors (file, socket, stdin...) */
-
+	
+	/* led register */
+	if (register_led(conf.led)) conf.led=0;
+	
 	/* connect to IR driver */
 	fd = open("/dev/lirc0", O_RDWR);
 	if (!fd) {
@@ -309,6 +328,7 @@ int main_demonized()
 	}
 	
 	/* main loop */
+	set_led(conf.led,1);
 	while (1)
 	{
 		int idx;
