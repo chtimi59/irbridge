@@ -28,6 +28,7 @@ jan_dorgeville@hotmail.com
 #include <stdlib.h>
 #include <stdio.h>
 #include <syslog.h>
+#include <unistd.h>
 
 #include "led.h"
 
@@ -104,4 +105,11 @@ void set_led(int gpio, int v) {
 	if (NULL==file) return;
 	fprintf(file,"%d", v);
 	fclose(file);
+}
+
+void blink_led(int gpio) {
+	set_led(gpio,1);
+	sleep(1);
+	set_led(gpio,0);
+	sleep(1);
 }

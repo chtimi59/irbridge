@@ -8,9 +8,8 @@ PATH=/sbin:/bin:/usr/sbin:/usr/bin
 # $IFACE = wlan0, --all
 # $MODE = start
 
-#if [ "$IFACE" = --all ]; then
 if [ "$IFACE" = wlan0 ]; then
-   /usr/sbin/irbrgd start
+   /usr/sbin/irbrgd stop
 fi
 
 

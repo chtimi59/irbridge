@@ -21,15 +21,11 @@ jan_dorgeville@hotmail.com
 */
 
 /* 
-*  Raspberry PI Model2 GPIO Settings
-*  based on /sys/class/gpio driver
+*  starfrit bathroom scale
 */
-#ifndef LED_H
-#define LED_H
+#ifndef STARFRIT_H
+#define STARFRIT_H
 
-int register_led(int gpio);
-void unregister_led(int gpio);
-void set_led(int gpio, int v);
-void blink_led(int gpio);
+int starfrit_process(char* url, int led, char* buffer, size_t len);
 
 #endif

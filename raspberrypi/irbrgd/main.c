@@ -41,13 +41,15 @@ jan_dorgeville@hotmail.com
 #include "server.h"
 #include "lirc.h"
 
+#include "starfrit.h"
+
 #include <fcntl.h>
 #include <stdio.h>
 #include <string.h>
 #include <unistd.h>
 
 /*
- sudo /usr/sbin/irbrgd start|stop
+ sudo /usr/sbin/irbrgd stop
  sudo ./irbrgd start|stop
  sudo vim /etc/irbrgd/irbrgd.conf
  tail -f /var/log/syslog &
@@ -269,7 +271,7 @@ int main(int argc, char**argv)
 	} while(0);
 
 	ret=main_demonized();
-	set_led(conf.led,0);
+	set_led(conf.led,1);
 	unregister_led(conf.led);
 	closelog();
 	return ret;
@@ -328,7 +330,7 @@ int main_demonized()
 	}
 	
 	/* main loop */
-	set_led(conf.led,1);
+	blink_led(conf.led);
 	while (1)
 	{
 		int idx;
@@ -367,6 +369,8 @@ int main_demonized()
 		{
 			int c = read(fd, (void *)&buffer, BUF_SIZE);
 			if (c>0) write_toallclients(buffer, c);
+			
+			if(conf.starfrit) starfrit_process(conf.starfrit_url, conf.led, buffer, c);
 		}		
 		/* 2- Something from connection socket ? */
 		else if (FD_ISSET(sock, &rdfs))
