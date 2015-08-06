@@ -9,7 +9,7 @@ PATH=/sbin:/bin:/usr/sbin:/usr/bin
 # $MODE = start
 
 if [ "$IFACE" = wlan0 ]; then
-   /usr/sbin/irbrgd stop
+   sudo /usr/sbin/irbrgd stop
 fi
 
 
