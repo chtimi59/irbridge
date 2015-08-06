@@ -94,7 +94,7 @@ int starfrit_process(char* url, int led, char* buffer, size_t len)
 							
 							if (samevalue_count==SAMEVALUE_CNT) {
 								char path[255]={0};
-								sprintf(path,"curl -X POST \"%s%f\"", url, weight);
+								sprintf(path,"curl -d \"\" -X POST \"%s%f\"", url, weight);
 								syslog(LOG_NOTICE,"startfrit run '%s'", path);
 								system(path);
 								blink_led(led);
