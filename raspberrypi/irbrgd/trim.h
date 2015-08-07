@@ -20,13 +20,12 @@ jan_dorgeville@hotmail.com
 
 */
 
-/* 
-*  starfrit bathroom scale
-*/
-#ifndef STARFRIT_H
-#define STARFRIT_H
+/* can't believe this string trim() doesn't exist in C... */
 
-void starfrit_setup(int led, char* args);
-int starfrit_process(char* buffer, size_t len);
+#ifndef TRIM_H
+#define TRIM_H
+
+int trim(char*s, int* multiline);
+void splitKey(char* line, char** pkey, char** pargs);
 
 #endif

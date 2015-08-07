@@ -26,9 +26,11 @@ jan_dorgeville@hotmail.com
 
 #include <stdlib.h>
 #include <stdio.h>
+#include <string.h>
 #include <syslog.h>
 #include <unistd.h>
 #include <time.h>
+#include "trim.h"
 
 #include "led.h"
 #include "starfrit.h"
@@ -41,6 +43,8 @@ jan_dorgeville@hotmail.com
 #define BUFF_IDX unkn0_DECODE_BUF_IDX
 
 #define SAMEVALUE_CNT 10
+
+
 float last_measurement = -1;
 int   samevalue_count = 0;
 int   last_measurement_date = 0;
@@ -50,7 +54,58 @@ void reset_measurements() {
 	samevalue_count = 0;
 }
 
-int starfrit_process(char* url, int led, char* buffer, size_t len)
+/* startfit configuration */
+#define MAX_CONF 128
+int starfritcount = 0;
+struct {
+	float min;
+	float max;
+	char* url;
+} starfritconf[MAX_CONF];
+int starfrit_led = 0;
+
+void starfrit_setup(int led, char* args)
+{
+	char * p = NULL;
+	int n=0;
+	
+	starfrit_led = led;
+	if (args==NULL) return;
+	p = strtok (args, ";");
+	while(p)
+	{ 	
+		trim(p, NULL);
+		switch(n%3) {
+			case 0:
+				starfritconf[starfritcount].min = atof(p);
+				if (starfritconf[starfritcount].min<0) starfritconf[starfritcount].min=0;
+				break;
+			case 1:
+				starfritconf[starfritcount].max = atof(p);
+				if (starfritconf[starfritcount].max<0) starfritconf[starfritcount].max=0;				
+				break;				
+			case 2:
+				if (p && strncmp(p,"http://", 7)==0) {
+					starfritconf[starfritcount].url = p;
+					starfritcount++;	
+				}
+				break;									
+		}
+		n++;
+		p = strtok(NULL, ";");
+	}
+	if (starfritcount==0) {
+		syslog(LOG_NOTICE,"starfrit: No url clients!");	
+	} else {
+		syslog(LOG_NOTICE,"starfrit: %d client(s)", starfritcount);	
+	}
+	for(n=0; n<starfritcount; n++) {
+		syslog(LOG_NOTICE,"  [%d] min>=%0.2fKg max<%0.2fKg [%s]", n, starfritconf[n].min, starfritconf[n].max, starfritconf[n].url);
+	}
+}	
+
+void push_measurement(float weight);
+int starfrit_process(char* buffer, size_t len)
 {
 	lirc_t* in = (lirc_t*)buffer;
 
@@ -92,13 +147,10 @@ int starfrit_process(char* url, int led, char* buffer, size_t len)
 											(t-last_measurement_date));
 							}
 							
-							if (samevalue_count==SAMEVALUE_CNT && weight!=0) {
-								char path[255]={0};
-								sprintf(path,"curl -d \"\" -X POST \"%s%f\"", url, weight);
-								syslog(LOG_NOTICE,"startfrit run '%s'", path);
-								system(path);
-								blink_led(led);
-							}
+							/* push ! */
+							if (samevalue_count==SAMEVALUE_CNT && weight!=0)
+								push_measurement(weight);								
+								
 						} else {
 							reset_measurements();
 							last_measurement=weight;
@@ -112,4 +164,26 @@ int starfrit_process(char* url, int led, char* buffer, size_t len)
 	} while (len > 0);
 	
 	return 0;
+}
+
+void push_measurement(float weight)
+{
+	int n=0;
+	char path[255]={0};
+	blink_led(starfrit_led);	
+	
+	/* for each clients */
+	syslog(LOG_NOTICE,"startfrit pushed start");
+	for(n=0; n<starfritcount; n++)
+	{
+		int test = 1;
+		test = test && (starfritconf[n].min <= 0.0f || starfritconf[n].min >= weight);
+		test = test && (starfritconf[n].max <= 0.0f || starfritconf[n].max <  weight);
+		if (test) {
+			sprintf(path,"curl -d \"\" -X POST \"%s%f\"", starfritconf[n].url, weight);
+			syslog(LOG_NOTICE,"startfrit run '%s'", path);
+			system(path);			
+		}
+	}	
+	syslog(LOG_NOTICE,"startfrit pushed end");
 }

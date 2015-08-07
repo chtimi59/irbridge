@@ -37,6 +37,8 @@ jan_dorgeville@hotmail.com
 #define LOG_FILE	"irbrgd.log"
 #define CONF_FILE	"irbrgd.conf"
 
+#include "trim.h"
+
 #include "led.h"
 #include "server.h"
 #include "lirc.h"
@@ -54,6 +56,11 @@ jan_dorgeville@hotmail.com
  sudo vim /etc/irbrgd/irbrgd.conf
  tail -f /var/log/syslog &
 */
+/* -- some unix cmd for daemon testing --
+ * ps -ef|grep irbrgd
+ * tail -f /var/log/syslog
+ * sudo lsof /etc/irbrgd/irbrgd.lock
+*/
 
 void usage() {
 	fprintf(stderr, "usage: irbdg start|stop\n");
@@ -64,7 +71,7 @@ struct {
 	int  port;
 	int  led;
 	int  starfrit;
-	char starfrit_url[256];
+	char starfrit_args[1024];
 } conf = {
 	8000,
 	0,
@@ -72,50 +79,59 @@ struct {
 	{0}
 };
 
-int trim(char*s);
-void readconf() {
+void readconf()
+{
 	FILE* file =fopen(CONF_FILE, "r");
-	char line[256];
-	if (file==NULL) {
+	char fileline[256] = {0};
+	char line[1024] = {0};
+	int  isMultiline = 0;
+	
+	if (file==NULL) {	
+		syslog(LOG_ERR, "warning: "CONF_FILE" not found (default values used)\n");
 		fprintf(stderr, "warning: "CONF_FILE" not found (default values used)\n");
 		return;
 	}
-	while (fgets(line, sizeof(line), file))
+	
+	while (fgets(fileline, sizeof(fileline), file))
 	{		
 		char * key=NULL;
-		char * p = strtok (line, " \t\n\r");
-		while(p)
-		{ 	
-			/* tocken travels */
-			int end=0;
-			if (trim(p)) do
-			{
-				if (strcmp(p,"#")==0) { end=1; key = NULL; break; }
-				if (!key) { key = p; break; }
-				do {
-					if (strcmp(key,"port")==0) { 
-						conf.port=atoi(p);
-						break;
-					}
-					if (strcmp(key,"starfrit")==0) { 
-						conf.starfrit = (strcmp(p,"ON")==0);
-						break;
-					}
-					if (strcmp(key,"starfrit_url")==0) { 
-						strcpy(conf.starfrit_url, p);
-						break;
-					}
-					if (strcmp(key,"led")==0) { 
-						conf.led=atoi(p);
-						break;
-					}
-				} while(0);
-				end=1; key = NULL;
-			} while(0);
-			
-			p = end?NULL:strtok (NULL, " ");
-		}		
-	}
+		char * args=NULL;
+		int tmp;
+		
+		/* trimming */
+		if (trim(fileline, &tmp)==0) continue;
+		
+		/* concat multiline */
+		if (isMultiline) {
+			strcat(line, fileline);
+		} else {
+			strcpy(line, fileline);
+		}
+		isMultiline = tmp;
+		if (isMultiline) continue;
+		
+		/* get key */
+		splitKey(line, &key, &args);
+		if (key) do {
+			if (strcmp(key,"port")==0) { 
+				conf.port=atoi(args);
+				break;
+			}
+			if (strcmp(key,"starfrit")==0) { 
+				conf.starfrit = (strcmp(args,"ON")==0);
+				break;
+			}
+			if (strcmp(key,"starfrit_url")==0) { 
+				strcpy(conf.starfrit_args, args);
+				break;
+			}
+			if (strcmp(key,"led")==0) { 
+				conf.led=atoi(args);
+				break;
+			}
+		} while(0);
+
+	}	
 	fclose(file);
 }
 
@@ -132,11 +148,6 @@ void signal_handler(int sig) {
 }
 
 
-/* -- some unix cmd for daemon testing --
- * ps -ef|grep irbrgd
- * tail -f /var/log/syslog
- * sudo lsof /etc/irbrgd/irbrgd.lock
-*/
 void daemonize()
 {
 	int i,lfp;
@@ -207,20 +218,6 @@ int getPID() {
 	return fl.l_pid;
 }
 
-int trim(char*s) {
-	int i,len;
-	if (!s) return 0;
-	len=strlen(s);
-	for(i=0;i<len;i++) {
-		int b = 0;
-		b = b || (s[i]==' ');
-		b = b || (s[i]=='\t');
-		b = b || (s[i]=='\n');
-		b = b || (s[i]=='\r');
-		if(b) s[i]='\0';
-	}
-	return strlen(s);
-}
 
 int main_demonized();
 int main(int argc, char**argv)
@@ -248,10 +245,11 @@ int main(int argc, char**argv)
 			}
 			
 			readconf();
-			syslog(LOG_NOTICE,"pport %d", conf.port);
+			syslog(LOG_NOTICE,"port %d", conf.port);
 			syslog(LOG_NOTICE,"led %d", conf.led);
-			syslog(LOG_NOTICE,"starfrit %d", conf.starfrit);
-			syslog(LOG_NOTICE,"starfrit_url %s", conf.starfrit_url);
+			/* extra features */
+			syslog(LOG_NOTICE,"starfrit %s", conf.starfrit?"ON":"OFF");
+			if (conf.starfrit) starfrit_setup(conf.led, conf.starfrit_args);
 			daemonize();
 			break;
 		}
@@ -259,9 +257,11 @@ int main(int argc, char**argv)
 			int ret;
 			int pid = getPID();
 			if (pid<1) {
+				syslog (LOG_ERR, "nothing to stop (%d)\n", pid);
 				fprintf(stderr, "nothing to stop (%d)\n", pid);
 				exit(1);
 			}
+			syslog (LOG_ERR, "stopping [%d]\n", pid);
 			fprintf(stderr, "stopping [%d]\n", pid);
 			ret = kill(pid,SIGHUP);
 			exit(ret);
@@ -273,6 +273,8 @@ int main(int argc, char**argv)
 	ret=main_demonized();
 	set_led(conf.led,1);
 	unregister_led(conf.led);
+	syslog (LOG_ERR, "*end*");
+	fprintf(stderr, "*end*\n");
 	closelog();
 	return ret;
 }
@@ -370,7 +372,7 @@ int main_demonized()
 			int c = read(fd, (void *)&buffer, BUF_SIZE);
 			if (c>0) write_toallclients(buffer, c);
 			
-			if(conf.starfrit) starfrit_process(conf.starfrit_url, conf.led, buffer, c);
+			if(conf.starfrit) starfrit_process(buffer, c);
 		}		
 		/* 2- Something from connection socket ? */
 		else if (FD_ISSET(sock, &rdfs))
