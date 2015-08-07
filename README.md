@@ -55,7 +55,7 @@ Installation :
 
 Once your lirc is fully functional, remove the default lirc daemon start script
 ```
-sudo mv /etc/init.d/lirc ~ 
+sudo update-rc.d -f lirc remove
 ```
 Then compile IRBridge with:
 ```
@@ -70,6 +70,29 @@ See self explained configuration file lays here
 To manually stop the daemon:
 ```
 sudo irbrgd stop
+```
+
+Wifi troubleshooting :
+=====================
+
+On my own wifi setup, I realize that my wifi is not very stable, and sometime, it just falls for obscure reason (wifi router reboot?). To avoid this I have made the following changes:
+* change /etc/network/if-down.d/irbrgd
+```
+if [ "$IFACE" = wlan0 ]; then
+   sudo /usr/sbin/irbrgd stop
+fi
+```
+* change /etc/network/if-up.d/irbrgd
+```
+if [ "$IFACE" = --all ] || [ "$IFACE" = wlan0 ]; then
+   sudo /usr/sbin/irbrgd start
+fi
+```
+* add service to reconnect wlan0 if unassociated
+```
+sudo cp raspberrypi/irbrgd/wlan_reconnect.sh /etc/init.d/. 
+sudo chmod a+x /etc/init.d/wlan_reconnect.sh
+sudo update-rc.d wlan_reconnect.sh defaults
 ```
 
 Clients :
