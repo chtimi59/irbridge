@@ -92,7 +92,7 @@ int starfrit_process(char* url, int led, char* buffer, size_t len)
 											(t-last_measurement_date));
 							}
 							
-							if (samevalue_count==SAMEVALUE_CNT) {
+							if (samevalue_count==SAMEVALUE_CNT && weight!=0) {
 								char path[255]={0};
 								sprintf(path,"curl -d \"\" -X POST \"%s%f\"", url, weight);
 								syslog(LOG_NOTICE,"startfrit run '%s'", path);
