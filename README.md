@@ -1,5 +1,5 @@
 <p align="left">
-  <img src="banner.png" alt="banner"/>
+   <img src="banner.png" alt="banner"/>
 </p>
 
 IR-Bridge Project / RaspberryPi
