@@ -177,8 +177,8 @@ void push_measurement(float weight)
 	for(n=0; n<starfritcount; n++)
 	{
 		int test = 1;
-		test = test && (starfritconf[n].min <= 0.0f || starfritconf[n].min >= weight);
-		test = test && (starfritconf[n].max <= 0.0f || starfritconf[n].max <  weight);
+		test = test && (starfritconf[n].min <= 0.0f || starfritconf[n].min <= weight);
+		test = test && (starfritconf[n].max <= 0.0f || starfritconf[n].max >  weight);
 		if (test) {
 			sprintf(path,"curl -d \"\" -X POST \"%s%f\"", starfritconf[n].url, weight);
 			syslog(LOG_NOTICE,"startfrit run '%s'", path);
