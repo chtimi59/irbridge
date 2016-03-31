@@ -73,7 +73,10 @@ LIRCD_CONF=""
 LIRCMD_CONF=""
 ########################################################
 ```
-
+Edit your /boot/config.txt file and add:
+```
+dtoverlay=lirc-rpi,gpio_in_pin=23,gpio_out_pin=22
+```
 more information here: http://alexba.in/blog/2013/01/06/setting-up-lirc-on-the-raspberrypi/  
 lirc sources before raspberry patches: http://lirc.sourceforge.net/ 
 	
